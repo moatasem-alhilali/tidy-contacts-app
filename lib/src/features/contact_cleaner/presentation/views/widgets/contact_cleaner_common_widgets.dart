@@ -1,6 +1,12 @@
+// Shared presentation primitives for the Contact Cleaner feature.
+// All containers are built on adaptive_platform_ui so they render natively
+// (Material on Android, Cupertino / iOS 26 on iOS) with a single, tidy style.
+
+import 'package:adaptive_platform_ui/adaptive_platform_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_manager/design-system-package/siolla_design_system.dart';
 
+/// A rounded surface card used as the base container across every tab.
 class ContactCleanerPanel extends StatelessWidget {
   const ContactCleanerPanel({
     required this.child,
@@ -19,22 +25,17 @@ class ContactCleanerPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return AdaptiveCard(
       margin: margin,
       padding: padding ?? EdgeInsets.all(context.insets.md.w),
-      decoration: BoxDecoration(
-        color: color ?? context.colors.surface,
-        borderRadius: BorderRadius.all(context.corners.rb),
-        border: Border.all(
-          color: borderColor ?? context.colors.outline.withValues(alpha: 0.08),
-        ),
-        boxShadow: [context.shadows.small],
-      ),
+      color: color ?? context.colors.surface,
+      borderRadius: BorderRadius.all(context.corners.rb),
       child: child,
     );
   }
 }
 
+/// A compact metric tile (label + big value) built on [AdaptiveCard].
 class ContactCleanerStatTile extends StatelessWidget {
   const ContactCleanerStatTile({
     required this.title,
@@ -55,11 +56,10 @@ class ContactCleanerStatTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: width,
-      child: ContactCleanerPanel(
+      child: AdaptiveCard(
         color: backgroundColor ?? context.colors.secondary,
-        borderColor: (backgroundColor ?? context.colors.secondary).withValues(
-          alpha: 0.65,
-        ),
+        borderRadius: BorderRadius.all(context.corners.rb),
+        padding: EdgeInsets.all(context.insets.md.w),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -84,6 +84,7 @@ class ContactCleanerStatTile extends StatelessWidget {
   }
 }
 
+/// A small pill/tag used to annotate cards.
 class ContactCleanerTag extends StatelessWidget {
   const ContactCleanerTag({
     required this.label,
@@ -130,6 +131,7 @@ class ContactCleanerTag extends StatelessWidget {
   }
 }
 
+/// A labelled read-only value block (direction aware for phone numbers).
 class ContactCleanerLabeledValue extends StatelessWidget {
   const ContactCleanerLabeledValue({
     required this.label,
@@ -149,7 +151,7 @@ class ContactCleanerLabeledValue extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final resolvedValue = valueDirection == TextDirection.ltr
-        ? '\u200E${value.trim()}\u200E'
+        ? '‎${value.trim()}‎'
         : value;
 
     return DecoratedBox(

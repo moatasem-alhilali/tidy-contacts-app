@@ -1,5 +1,8 @@
-// ignore_for_file: lines_longer_than_80_chars, omit_local_variable_types
+// Action header for the Contact Cleaner: scan / backup / apply.
+// Built on AdaptiveCard + AdaptiveButton so the primary actions render
+// natively per platform.
 
+import 'package:adaptive_platform_ui/adaptive_platform_ui.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_manager/design-system-package/siolla_design_system.dart';
@@ -47,62 +50,52 @@ class ContactCleanerHeaderWidget extends StatelessWidget {
             ),
           ),
           if (backupFileName != null) ...[
-            SizedBox(height: context.insets.lg.h),
+            SizedBox(height: context.insets.md.h),
             ContactCleanerTag(
               label: LocaleKeys.contact_cleaner_last_backup.tr(
                 namedArgs: {'name': backupFileName},
               ),
               icon: Icons.folder_open_outlined,
-              backgroundColor: context.colors.secondary,
-              textColor: context.colors.onPrimaryContainer,
             ),
           ],
           SizedBox(height: context.insets.lg.h),
-          ButtonProgressStateWidget(
-            state: state.scanState,
-            text: state.hasAnalysis
-                ? LocaleKeys.contact_cleaner_rescan.tr()
-                : LocaleKeys.contact_cleaner_start_scan.tr(),
-            textLoading: LocaleKeys.contact_cleaner_scanning.tr(),
-            marginVertical: 0,
-            defaultColor: state.hasAnalysis
-                ? context.colors.secondary
-                : context.colors.primary,
-            colorText: state.hasAnalysis
-                ? context.colors.onPrimaryContainer
-                : context.colors.onPrimary,
-            onPressed: onScanPressed,
+          SizedBox(
+            width: double.infinity,
+            child: AdaptiveButton(
+              onPressed: onScanPressed,
+              enabled: !state.isScanning,
+              size: AdaptiveButtonSize.large,
+              style: state.hasAnalysis
+                  ? AdaptiveButtonStyle.tinted
+                  : AdaptiveButtonStyle.filled,
+              label: state.isScanning
+                  ? LocaleKeys.contact_cleaner_scanning.tr()
+                  : state.hasAnalysis
+                  ? LocaleKeys.contact_cleaner_rescan.tr()
+                  : LocaleKeys.contact_cleaner_start_scan.tr(),
+            ),
           ),
           SizedBox(height: context.insets.sm.h),
           Row(
             children: [
               Expanded(
-                child: ButtonProgressStateWidget(
-                  state: state.backupState,
-                  text: LocaleKeys.contact_cleaner_backup.tr(),
-                  textLoading: LocaleKeys.contact_cleaner_exporting.tr(),
-                  marginVertical: 0,
-                  defaultColor: context.colors.secondary,
-                  colorText: context.colors.onPrimaryContainer,
+                child: AdaptiveButton(
                   onPressed: onBackupPressed,
+                  enabled: !state.isBackingUp,
+                  style: AdaptiveButtonStyle.tinted,
+                  label: state.isBackingUp
+                      ? LocaleKeys.contact_cleaner_exporting.tr()
+                      : LocaleKeys.contact_cleaner_backup.tr(),
                 ),
               ),
               SizedBox(width: context.insets.sm.w),
               Expanded(
-                child: IgnorePointer(
-                  ignoring: !canApply,
-                  child: Opacity(
-                    opacity: canApply ? 1 : 0.58,
-                    child: ButtonProgressStateWidget(
-                      state: state.applyState,
-                      text: LocaleKeys.contact_cleaner_apply_fixes.tr(),
-                      textLoading: LocaleKeys.contact_cleaner_applying.tr(),
-                      marginVertical: 0,
-                      defaultColor: context.colors.brandColor,
-                      colorText: context.colors.white,
-                      onPressed: canApply ? onApplyPressed : null,
-                    ),
-                  ),
+                child: AdaptiveButton(
+                  onPressed: onApplyPressed,
+                  enabled: canApply,
+                  label: state.isApplying
+                      ? LocaleKeys.contact_cleaner_applying.tr()
+                      : LocaleKeys.contact_cleaner_apply_fixes.tr(),
                 ),
               ),
             ],
@@ -111,7 +104,6 @@ class ContactCleanerHeaderWidget extends StatelessWidget {
           ContactCleanerPanel(
             padding: EdgeInsets.all(context.insets.md.w),
             color: context.colors.brand10Color,
-            borderColor: context.colors.brand10Color,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

@@ -3,6 +3,7 @@
   "default_error": "حدث خطأ ما",
   "internal_server_error": "خطأ في الخادم",
   "retry": "إعادة المحاولة",
+  "cancel": "إلغاء",
   "open_settings": "فتح الإعدادات",
   "request_permission": "طلب الإذن",
   "unnamed_contact": "بدون اسم",

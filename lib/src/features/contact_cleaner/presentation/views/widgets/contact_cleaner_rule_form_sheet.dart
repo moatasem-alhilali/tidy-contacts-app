@@ -1,11 +1,14 @@
-// ignore_for_file: omit_local_variable_types
+// Rule editor built entirely on adaptive_platform_ui form components:
+// AdaptiveFormSection groups the fields, AdaptiveTextFormField handles input
+// and validation, AdaptiveSwitch toggles trunk-prefix removal.
 
+import 'package:adaptive_platform_ui/adaptive_platform_ui.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hive_manager/design-system-package/siolla_design_system.dart';
 import 'package:hive_manager/generated/codegen_loader.g.dart';
 import 'package:hive_manager/src/features/contact_cleaner/data/models/contact_cleaner_models.dart';
-import 'package:hive_manager/src/features/contact_cleaner/presentation/views/widgets/contact_cleaner_common_widgets.dart';
 import 'package:hive_manager/src/features/contact_cleaner/presentation/views/widgets/contact_cleaner_rule_label_localizer.dart';
 
 class ContactCleanerRuleFormSheet extends StatefulWidget {
@@ -25,6 +28,8 @@ class ContactCleanerRuleFormSheet extends StatefulWidget {
 
 class _ContactCleanerRuleFormSheetState
     extends State<ContactCleanerRuleFormSheet> {
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
   late final TextEditingController _labelController;
   late final TextEditingController _lengthController;
   late final TextEditingController _prefixesController;
@@ -32,13 +37,15 @@ class _ContactCleanerRuleFormSheetState
   late final TextEditingController _trunkPrefixController;
   late bool _removeTrunkPrefix;
 
+  bool get _isEditing => widget.initialRule != null;
+
   @override
   void initState() {
     super.initState();
     _labelController = TextEditingController(
-      text: widget.initialRule == null
-          ? ''
-          : localizedContactCleanerRuleLabel(widget.initialRule!),
+      text: _isEditing
+          ? localizedContactCleanerRuleLabel(widget.initialRule!)
+          : '',
     );
     _lengthController = TextEditingController(
       text: widget.initialRule?.expectedLength.toString() ?? '',
@@ -66,22 +73,16 @@ class _ContactCleanerRuleFormSheetState
   }
 
   void _submit() {
-    final int? expectedLength = int.tryParse(_lengthController.text.trim());
+    if (!(_formKey.currentState?.validate() ?? false)) {
+      return;
+    }
+
+    final int expectedLength = int.parse(_lengthController.text.trim());
     final List<String> prefixes = _prefixesController.text
         .split(',')
         .map((String prefix) => prefix.trim())
         .where((String prefix) => prefix.isNotEmpty)
         .toList();
-
-    if (_labelController.text.trim().isEmpty ||
-        expectedLength == null ||
-        expectedLength <= 0 ||
-        _countryCodeController.text.trim().isEmpty) {
-      context.showWarningSnackbar(
-        LocaleKeys.contact_cleaner_rule_validation_error.tr(),
-      );
-      return;
-    }
 
     widget.onSubmitted(
       NormalizationRule(
@@ -103,98 +104,121 @@ class _ContactCleanerRuleFormSheetState
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.all(context.insets.md.w),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          TextWidget(
-            widget.initialRule == null
-                ? LocaleKeys.contact_cleaner_add_rule_title.tr()
-                : LocaleKeys.contact_cleaner_edit_rule_title.tr(),
-            style: context.textStyles.titleMedium.copyWith(
-              color: context.colors.onPrimaryContainer,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          SizedBox(height: context.insets.sm.h),
-          ContactCleanerPanel(
-            padding: EdgeInsets.all(context.insets.sm.w),
-            color: context.colors.secondary,
-            borderColor: context.colors.secondary,
-            child: TextWidget(
-              LocaleKeys.contact_cleaner_rule_example.tr(),
-              style: context.textStyles.bodyMedium.copyWith(
-                color: context.colors.onSecondary,
+    return SafeArea(
+      top: false,
+      child: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: EdgeInsets.fromLTRB(
+                context.insets.md.w,
+                context.insets.md.h,
+                context.insets.md.w,
+                0,
+              ),
+              child: Text(
+                _isEditing
+                    ? LocaleKeys.contact_cleaner_edit_rule_title.tr()
+                    : LocaleKeys.contact_cleaner_add_rule_title.tr(),
+                style: context.textStyles.titleMedium.copyWith(
+                  color: context.colors.onPrimaryContainer,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
-          ),
-          SizedBox(height: context.insets.md.h),
-          TextFormFieldWidget(
-            controller: _labelController,
-            labelText: LocaleKeys.contact_cleaner_rule_name.tr(),
-            hintText: LocaleKeys.contact_cleaner_rule_name_hint.tr(),
-          ),
-          SizedBox(height: context.insets.md.h),
-          TextFormFieldWidget(
-            controller: _lengthController,
-            labelText: LocaleKeys.contact_cleaner_rule_expected_length.tr(),
-            hintText: LocaleKeys.contact_cleaner_rule_expected_length_hint.tr(),
-            numberFormatter: true,
-            keyboardType: TextInputType.number,
-          ),
-          SizedBox(height: context.insets.md.h),
-          TextFormFieldWidget(
-            controller: _prefixesController,
-            labelText: LocaleKeys.contact_cleaner_rule_prefixes.tr(),
-            hintText: LocaleKeys.contact_cleaner_rule_prefixes_hint.tr(),
-          ),
-          SizedBox(height: context.insets.md.h),
-          TextFormFieldWidget(
-            controller: _countryCodeController,
-            labelText: LocaleKeys.contact_cleaner_rule_country_code_field.tr(),
-            hintText: LocaleKeys.contact_cleaner_rule_country_code_hint.tr(),
-            phoneFormatter: true,
-            keyboardType: TextInputType.phone,
-          ),
-          SizedBox(height: context.insets.sm.h),
-          CheckboxListTile(
-            value: _removeTrunkPrefix,
-            onChanged: (bool? value) {
-              setState(() {
-                _removeTrunkPrefix = value ?? false;
-              });
-            },
-            title: TextWidget(
-              LocaleKeys.contact_cleaner_rule_remove_local_prefix.tr(),
-              style: context.textStyles.bodyMedium.copyWith(
-                color: context.colors.onPrimaryContainer,
-              ),
+            AdaptiveFormSection.insetGrouped(
+              header: Text(LocaleKeys.contact_cleaner_rule_example.tr()),
+              children: [
+                AdaptiveTextFormField(
+                  controller: _labelController,
+                  placeholder: LocaleKeys.contact_cleaner_rule_name_hint.tr(),
+                  prefixIcon: const Icon(Icons.label_outline),
+                  textCapitalization: TextCapitalization.words,
+                  validator: _requiredValidator,
+                ),
+                AdaptiveTextFormField(
+                  controller: _lengthController,
+                  placeholder: LocaleKeys
+                      .contact_cleaner_rule_expected_length_hint
+                      .tr(),
+                  keyboardType: TextInputType.number,
+                  prefixIcon: const Icon(Icons.tag),
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  validator: (String? value) {
+                    final int? parsed = int.tryParse((value ?? '').trim());
+                    if (parsed == null || parsed <= 0) {
+                      return LocaleKeys.contact_cleaner_rule_validation_error
+                          .tr();
+                    }
+                    return null;
+                  },
+                ),
+                AdaptiveTextFormField(
+                  controller: _countryCodeController,
+                  placeholder: LocaleKeys.contact_cleaner_rule_country_code_hint
+                      .tr(),
+                  keyboardType: TextInputType.phone,
+                  prefixIcon: const Icon(Icons.public),
+                  validator: _requiredValidator,
+                ),
+                AdaptiveTextFormField(
+                  controller: _prefixesController,
+                  placeholder: LocaleKeys.contact_cleaner_rule_prefixes_hint
+                      .tr(),
+                  prefixIcon: const Icon(Icons.dialpad),
+                ),
+              ],
             ),
-            contentPadding: EdgeInsets.zero,
-          ),
-          if (_removeTrunkPrefix) ...[
-            SizedBox(height: context.insets.sm.h),
-            TextFormFieldWidget(
-              controller: _trunkPrefixController,
-              labelText: LocaleKeys.contact_cleaner_rule_local_prefix.tr(),
-              hintText: LocaleKeys.contact_cleaner_rule_local_prefix_hint.tr(),
+            AdaptiveFormSection.insetGrouped(
+              children: [
+                AdaptiveListTile(
+                  title: Text(
+                    LocaleKeys.contact_cleaner_rule_remove_local_prefix.tr(),
+                  ),
+                  trailing: AdaptiveSwitch(
+                    value: _removeTrunkPrefix,
+                    onChanged: (bool value) =>
+                        setState(() => _removeTrunkPrefix = value),
+                  ),
+                ),
+                if (_removeTrunkPrefix)
+                  AdaptiveTextFormField(
+                    controller: _trunkPrefixController,
+                    placeholder: LocaleKeys
+                        .contact_cleaner_rule_local_prefix_hint
+                        .tr(),
+                    keyboardType: TextInputType.number,
+                    prefixIcon: const Icon(Icons.filter_1),
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  ),
+              ],
+            ),
+            Padding(
+              padding: EdgeInsets.all(context.insets.md.w),
+              child: SizedBox(
+                width: double.infinity,
+                child: AdaptiveButton(
+                  onPressed: _submit,
+                  size: AdaptiveButtonSize.large,
+                  label: _isEditing
+                      ? LocaleKeys.contact_cleaner_rule_update.tr()
+                      : LocaleKeys.contact_cleaner_rule_save.tr(),
+                ),
+              ),
             ),
           ],
-          SizedBox(height: context.insets.lg.h),
-          ButtonProgressStateWidget(
-            text: widget.initialRule == null
-                ? LocaleKeys.contact_cleaner_rule_save.tr()
-                : LocaleKeys.contact_cleaner_rule_update.tr(),
-            marginVertical: 0,
-            defaultColor: context.colors.brandColor,
-            colorText: context.colors.white,
-            onPressed: _submit,
-          ),
-          SizedBox(height: context.insets.md.h),
-        ],
+        ),
       ),
     );
+  }
+
+  String? _requiredValidator(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return LocaleKeys.contact_cleaner_rule_validation_error.tr();
+    }
+    return null;
   }
 }

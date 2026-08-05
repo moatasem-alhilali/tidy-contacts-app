@@ -3,6 +3,7 @@
   "default_error": "Something went wrong",
   "internal_server_error": "Internal server error",
   "retry": "Retry",
+  "cancel": "Cancel",
   "open_settings": "Open settings",
   "request_permission": "Request permission",
   "unnamed_contact": "Unnamed contact",

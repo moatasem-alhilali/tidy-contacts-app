@@ -1,6 +1,7 @@
 // ignore_for_file: lines_longer_than_80_chars, omit_local_variable_types
 // ignore_for_file: use_build_context_synchronously
 
+import 'package:adaptive_platform_ui/adaptive_platform_ui.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -8,7 +9,7 @@ import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_manager/design-system-package/siolla_design_system.dart';
 import 'package:hive_manager/generated/codegen_loader.g.dart';
-import 'package:hive_manager/src/core/widgets/new/base_app_bar_widget.dart';
+import 'package:hive_manager/src/features/adaptive_showcase/adaptive_showcase_screen.dart';
 import 'package:hive_manager/src/features/contact_cleaner/data/models/contact_cleaner_models.dart';
 import 'package:hive_manager/src/features/contact_cleaner/presentation/providers/contact_cleaner_controller.dart';
 import 'package:hive_manager/src/features/contact_cleaner/presentation/providers/contact_cleaner_state.dart';
@@ -24,6 +25,8 @@ class MainScreen extends ConsumerStatefulWidget {
 }
 
 class _MainScreenState extends ConsumerState<MainScreen> {
+  int _tab = 0;
+
   @override
   void initState() {
     super.initState();
@@ -41,15 +44,24 @@ class _MainScreenState extends ConsumerState<MainScreen> {
       contactCleanerControllerProvider.notifier,
     );
 
-    return DefaultTabController(
-      length: 4,
-      child: AppScaffold(
-        appBar: BaseAppBarWidget(
-          title: LocaleKeys.contact_cleaner_title.tr(),
-          subtitle: LocaleKeys.contact_cleaner_subtitle.tr(),
-          showBackButton: false,
-          preferredSizeHeight: 78,
-        ),
+    return AdaptiveScaffold(
+      appBar: AdaptiveAppBar(
+        title: LocaleKeys.contact_cleaner_title.tr(),
+        subtitle: LocaleKeys.contact_cleaner_subtitle.tr(),
+        actions: [
+          AdaptiveAppBarAction(
+            icon: Icons.auto_awesome_outlined,
+            iosSymbol: 'sparkles',
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => const AdaptiveShowcaseScreen(),
+              ),
+            ),
+          ),
+        ],
+      ),
+      body: SafeArea(
+        top: false,
         child: Padding(
           padding: EdgeInsets.fromLTRB(
             context.insets.mn.w,
@@ -121,64 +133,17 @@ class _MainScreenState extends ConsumerState<MainScreen> {
               ref.read(contactCleanerControllerProvider),
             );
           },
-          onBackupPressed: () async {
-            await controller.createBackup();
-            final ContactCleanerState latestState = ref.read(
-              contactCleanerControllerProvider,
-            );
-            if (latestState.backupState == RequestState.success &&
-                latestState.lastBackupPath != null) {
-              context.showSuccessSnackbar(
-                LocaleKeys.contact_cleaner_backup_created.tr(),
-              );
-              controller.resetTransientStates(backup: true);
-              await SharePlus.instance.share(
-                ShareParams(
-                  files: <XFile>[
-                    XFile(latestState.lastBackupPath!, mimeType: 'text/vcard'),
-                  ],
-                  title: LocaleKeys.contact_cleaner_backup_share_title.tr(),
-                ),
-              );
-            } else {
-              _showStateFeedback(context, controller, latestState);
-            }
-          },
+          onBackupPressed: () => _handleBackup(context, controller),
           onApplyPressed: () => _showApplyConfirmation(context, controller),
         ),
-        Container(
-          decoration: BoxDecoration(
-            color: context.colors.secondary,
-            borderRadius: BorderRadius.all(context.corners.rb),
-            border: Border.all(
-              color: context.colors.outline.withValues(alpha: 0.08),
-            ),
-          ),
-          padding: EdgeInsets.all(context.insets.sm.w),
-          child: TabBar(
-            dividerColor: context.colors.background.withValues(alpha: 0),
-            indicatorSize: TabBarIndicatorSize.tab,
-            indicator: BoxDecoration(
-              color: context.colors.brandColor,
-              borderRadius: BorderRadius.all(context.corners.rb),
-            ),
-            labelColor: context.colors.white,
-            unselectedLabelColor: context.colors.onSecondary,
-            labelStyle: context.textStyles.labelLarge.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
-            unselectedLabelStyle: context.textStyles.labelMedium,
-            tabs: [
-              Tab(text: LocaleKeys.contact_cleaner_tab_overview.tr()),
-              Tab(text: LocaleKeys.contact_cleaner_tab_rules.tr()),
-              Tab(text: LocaleKeys.contact_cleaner_tab_duplicates.tr()),
-              Tab(text: LocaleKeys.contact_cleaner_tab_preview.tr()),
-            ],
-          ),
+        _TabSelector(
+          selectedIndex: _tab,
+          onChanged: (int index) => setState(() => _tab = index),
         ),
         SizedBox(height: context.insets.md.h),
         Expanded(
-          child: TabBarView(
+          child: IndexedStack(
+            index: _tab,
             children: [
               ContactCleanerOverviewTab(analysis: state.analysis),
               ContactCleanerRulesTab(
@@ -190,8 +155,10 @@ class _MainScreenState extends ConsumerState<MainScreen> {
                 onCrossContactChanged: controller.setCrossContactAction,
                 onAutoCleanPressed: () {
                   controller.applyAutoCleanPreset();
-                  context.showSuccessSnackbar(
+                  _snack(
+                    context,
                     LocaleKeys.contact_cleaner_auto_clean_preset_updated.tr(),
+                    AdaptiveSnackBarType.success,
                   );
                 },
                 onAddRulePressed: () => _showRuleSheet(context, controller),
@@ -209,50 +176,101 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     );
   }
 
+  Future<void> _handleBackup(
+    BuildContext context,
+    ContactCleanerController controller,
+  ) async {
+    await controller.createBackup();
+    final ContactCleanerState latestState = ref.read(
+      contactCleanerControllerProvider,
+    );
+    if (latestState.backupState == RequestState.success &&
+        latestState.lastBackupPath != null) {
+      _snack(
+        context,
+        LocaleKeys.contact_cleaner_backup_created.tr(),
+        AdaptiveSnackBarType.success,
+      );
+      controller.resetTransientStates(backup: true);
+      await SharePlus.instance.share(
+        ShareParams(
+          files: <XFile>[
+            XFile(latestState.lastBackupPath!, mimeType: 'text/vcard'),
+          ],
+          title: LocaleKeys.contact_cleaner_backup_share_title.tr(),
+        ),
+      );
+    } else {
+      _showStateFeedback(context, controller, latestState);
+    }
+  }
+
   void _showRuleSheet(
     BuildContext context,
     ContactCleanerController controller, {
     NormalizationRule? initialRule,
   }) {
-    context.showBaseBottomSheet(
-      child: ContactCleanerRuleFormSheet(
-        initialRule: initialRule,
-        onSubmitted: (NormalizationRule rule) async {
-          if (initialRule == null) {
-            await controller.addRule(rule);
-          } else {
-            await controller.updateRule(rule);
-          }
-          if (mounted) {
-            _showStateFeedback(
-              context,
-              controller,
-              ref.read(contactCleanerControllerProvider),
-            );
-          }
-        },
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: context.colors.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: context.corners.rb),
+      ),
+      builder: (BuildContext sheetContext) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(sheetContext).viewInsets.bottom,
+        ),
+        child: SingleChildScrollView(
+          child: ContactCleanerRuleFormSheet(
+            initialRule: initialRule,
+            onSubmitted: (NormalizationRule rule) async {
+              if (initialRule == null) {
+                await controller.addRule(rule);
+              } else {
+                await controller.updateRule(rule);
+              }
+              if (mounted) {
+                _showStateFeedback(
+                  context,
+                  controller,
+                  ref.read(contactCleanerControllerProvider),
+                );
+              }
+            },
+          ),
+        ),
       ),
     );
   }
 
-  void _showDeleteRuleConfirmation(
+  Future<void> _showDeleteRuleConfirmation(
     BuildContext context,
     ContactCleanerController controller,
     String ruleId,
-  ) {
-    context.showQuickActionSheet(
+  ) async {
+    await AdaptiveAlertDialog.show(
+      context: context,
       title: LocaleKeys.contact_cleaner_delete_rule_title.tr(),
       message: LocaleKeys.contact_cleaner_delete_rule_message.tr(),
+      icon: 'trash.fill',
       actions: [
-        QuickActionItem(
+        AlertAction(
+          title: LocaleKeys.cancel.tr(),
+          style: AlertActionStyle.cancel,
+          onPressed: () {},
+        ),
+        AlertAction(
           title: LocaleKeys.contact_cleaner_delete_rule_action.tr(),
-          isDestructive: true,
-          onTap: () async {
+          style: AlertActionStyle.destructive,
+          onPressed: () async {
             await controller.removeRule(ruleId);
             if (mounted) {
-              Navigator.of(context).pop();
-              context.showSuccessSnackbar(
+              _snack(
+                context,
                 LocaleKeys.contact_cleaner_delete_rule_success.tr(),
+                AdaptiveSnackBarType.success,
               );
               controller.resetTransientStates(scan: true);
             }
@@ -262,18 +280,25 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     );
   }
 
-  void _showApplyConfirmation(
+  Future<void> _showApplyConfirmation(
     BuildContext context,
     ContactCleanerController controller,
-  ) {
-    context.showQuickActionSheet(
+  ) async {
+    await AdaptiveAlertDialog.show(
+      context: context,
       title: LocaleKeys.contact_cleaner_apply_confirmation_title.tr(),
       message: LocaleKeys.contact_cleaner_apply_confirmation_message.tr(),
+      icon: 'checkmark.seal.fill',
       actions: [
-        QuickActionItem(
+        AlertAction(
+          title: LocaleKeys.cancel.tr(),
+          style: AlertActionStyle.cancel,
+          onPressed: () {},
+        ),
+        AlertAction(
           title: LocaleKeys.contact_cleaner_apply_confirmation_action.tr(),
-          onTap: () async {
-            Navigator.of(context).pop();
+          style: AlertActionStyle.primary,
+          onPressed: () async {
             await controller.applyFixes();
             if (mounted) {
               _showStateFeedback(
@@ -297,7 +322,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
         (state.scanState == RequestState.error ||
             state.applyState == RequestState.error ||
             state.backupState == RequestState.error)) {
-      context.showErrorSnackbar(state.errorMessage!);
+      _snack(context, state.errorMessage!, AdaptiveSnackBarType.error);
       controller.resetTransientStates(
         scan: state.scanState == RequestState.error,
         backup: state.backupState == RequestState.error,
@@ -307,18 +332,52 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     }
 
     if (state.applyState == RequestState.success) {
-      context.showSuccessSnackbar(
+      _snack(
+        context,
         LocaleKeys.contact_cleaner_apply_completed.tr(),
+        AdaptiveSnackBarType.success,
       );
       controller.resetTransientStates(scan: true, apply: true);
       return;
     }
 
     if (state.scanState == RequestState.success) {
-      context.showSuccessSnackbar(
+      _snack(
+        context,
         LocaleKeys.contact_cleaner_scan_completed.tr(),
+        AdaptiveSnackBarType.success,
       );
       controller.resetTransientStates(scan: true);
     }
+  }
+
+  void _snack(
+    BuildContext context,
+    String message,
+    AdaptiveSnackBarType type,
+  ) {
+    AdaptiveSnackBar.show(context, message: message, type: type);
+  }
+}
+
+/// Section switcher for the four Contact Cleaner tabs.
+class _TabSelector extends StatelessWidget {
+  const _TabSelector({required this.selectedIndex, required this.onChanged});
+
+  final int selectedIndex;
+  final ValueChanged<int> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return AdaptiveSegmentedControl(
+      selectedIndex: selectedIndex,
+      onValueChanged: onChanged,
+      labels: [
+        LocaleKeys.contact_cleaner_tab_overview.tr(),
+        LocaleKeys.contact_cleaner_tab_rules.tr(),
+        LocaleKeys.contact_cleaner_tab_duplicates.tr(),
+        LocaleKeys.contact_cleaner_tab_preview.tr(),
+      ],
+    );
   }
 }

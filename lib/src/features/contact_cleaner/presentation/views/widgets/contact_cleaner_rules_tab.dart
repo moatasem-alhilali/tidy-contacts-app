@@ -1,5 +1,10 @@
-// ignore_for_file: lines_longer_than_80_chars
+// Rules & options tab.
+// Options -> AdaptiveListTile + AdaptiveSwitch
+// Cross-contact strategy -> AdaptiveSegmentedControl
+// Actions -> AdaptiveButton
+// Each rule -> AdaptiveExpansionTile + AdaptivePopupMenuButton
 
+import 'package:adaptive_platform_ui/adaptive_platform_ui.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_manager/design-system-package/siolla_design_system.dart';
@@ -32,6 +37,9 @@ class ContactCleanerRulesTab extends StatelessWidget {
   final ValueChanged<String> onDeleteRulePressed;
   final VoidCallback onAutoCleanPressed;
 
+  static const List<CrossContactDuplicateAction> _crossActions =
+      CrossContactDuplicateAction.values;
+
   @override
   Widget build(BuildContext context) {
     return ListView(
@@ -57,64 +65,75 @@ class ContactCleanerRulesTab extends StatelessWidget {
                 ),
               ),
               SizedBox(height: context.insets.md.h),
-              _OptionTile(
-                title: LocaleKeys.contact_cleaner_option_normalize_title.tr(),
-                subtitle: LocaleKeys.contact_cleaner_option_normalize_subtitle
-                    .tr(),
-                value: options.normalizeNumbers,
-                onChanged: onNormalizeChanged,
+              AdaptiveListTile(
+                hideBottomDivider: true,
+                title: Text(
+                  LocaleKeys.contact_cleaner_option_normalize_title.tr(),
+                ),
+                subtitle: Text(
+                  LocaleKeys.contact_cleaner_option_normalize_subtitle.tr(),
+                ),
+                trailing: AdaptiveSwitch(
+                  value: options.normalizeNumbers,
+                  onChanged: onNormalizeChanged,
+                ),
+              ),
+              AdaptiveListTile(
+                hideBottomDivider: true,
+                title: Text(
+                  LocaleKeys.contact_cleaner_option_within_contact_title.tr(),
+                ),
+                subtitle: Text(
+                  LocaleKeys.contact_cleaner_option_within_contact_subtitle.tr(),
+                ),
+                trailing: AdaptiveSwitch(
+                  value: options.removeDuplicatesWithinContact,
+                  onChanged: onWithinContactChanged,
+                ),
+              ),
+              SizedBox(height: context.insets.md.h),
+              TextWidget(
+                LocaleKeys.contact_cleaner_cross_contact_action_label.tr(),
+                style: context.textStyles.labelLarge.copyWith(
+                  color: context.colors.onSecondary,
+                ),
               ),
               SizedBox(height: context.insets.sm.h),
-              _OptionTile(
-                title: LocaleKeys.contact_cleaner_option_within_contact_title
-                    .tr(),
-                subtitle: LocaleKeys
-                    .contact_cleaner_option_within_contact_subtitle
-                    .tr(),
-                value: options.removeDuplicatesWithinContact,
-                onChanged: onWithinContactChanged,
-              ),
-              SizedBox(height: context.insets.md.h),
-              DropdownButtonFormField<CrossContactDuplicateAction>(
-                value: options.crossContactAction,
-                decoration: InputDecoration(
-                  labelText: LocaleKeys
-                      .contact_cleaner_cross_contact_action_label
-                      .tr(),
-                ),
-                items: CrossContactDuplicateAction.values
-                    .map(
-                      (CrossContactDuplicateAction action) =>
-                          DropdownMenuItem<CrossContactDuplicateAction>(
-                            value: action,
-                            child: TextWidget(_actionLabel(action)),
-                          ),
-                    )
+              AdaptiveSegmentedControl(
+                labels: _crossActions
+                    .map((CrossContactDuplicateAction a) => _actionLabel(a))
                     .toList(),
-                onChanged: (CrossContactDuplicateAction? value) {
-                  if (value != null) {
-                    onCrossContactChanged(value);
-                  }
-                },
+                selectedIndex: _crossActions.indexOf(options.crossContactAction),
+                onValueChanged: (int index) =>
+                    onCrossContactChanged(_crossActions[index]),
               ),
               SizedBox(height: context.insets.md.h),
-              ButtonProgressStateWidget(
-                text: LocaleKeys.contact_cleaner_enable_auto_preset.tr(),
-                marginVertical: 0,
-                defaultColor: context.colors.secondary,
-                colorText: context.colors.onPrimaryContainer,
-                onPressed: onAutoCleanPressed,
+              SizedBox(
+                width: double.infinity,
+                child: AdaptiveButton(
+                  onPressed: onAutoCleanPressed,
+                  style: AdaptiveButtonStyle.tinted,
+                  label: LocaleKeys.contact_cleaner_enable_auto_preset.tr(),
+                ),
               ),
             ],
           ),
         ),
         SizedBox(height: context.insets.md.h),
-        ButtonProgressStateWidget(
-          text: LocaleKeys.contact_cleaner_add_rule.tr(),
-          marginVertical: 0,
-          defaultColor: context.colors.brandColor,
-          colorText: context.colors.white,
-          onPressed: onAddRulePressed,
+        SizedBox(
+          width: double.infinity,
+          child: AdaptiveButton.child(
+            onPressed: onAddRulePressed,
+            size: AdaptiveButtonSize.large,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.add, size: 18),
+                SizedBox(width: context.insets.sm.w),
+                Text(LocaleKeys.contact_cleaner_add_rule.tr()),
+              ],
+            ),
+          ),
         ),
         SizedBox(height: context.insets.md.h),
         if (rules.isEmpty)
@@ -147,66 +166,6 @@ class ContactCleanerRulesTab extends StatelessWidget {
   }
 }
 
-class _OptionTile extends StatelessWidget {
-  const _OptionTile({
-    required this.title,
-    required this.subtitle,
-    required this.value,
-    required this.onChanged,
-  });
-
-  final String title;
-  final String subtitle;
-  final bool value;
-  final ValueChanged<bool> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: context.colors.secondary,
-        borderRadius: BorderRadius.all(context.corners.rm),
-      ),
-      child: Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: context.insets.sm.w,
-          vertical: context.insets.sm.h,
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  TextWidget(
-                    title,
-                    style: context.textStyles.bodyLarge.copyWith(
-                      color: context.colors.onPrimaryContainer,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  SizedBox(height: context.insets.sm.h),
-                  TextWidget(
-                    subtitle,
-                    style: context.textStyles.bodyMedium.copyWith(
-                      color: context.colors.onSecondary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Switch.adaptive(
-              value: value,
-              activeColor: context.colors.primary,
-              onChanged: onChanged,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _RuleCard extends StatelessWidget {
   const _RuleCard({
     required this.rule,
@@ -222,31 +181,49 @@ class _RuleCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return ContactCleanerPanel(
       margin: EdgeInsets.only(bottom: context.insets.sm.h),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: TextWidget(
-                  localizedContactCleanerRuleLabel(rule),
-                  style: context.textStyles.titleMedium.copyWith(
-                    color: context.colors.onPrimaryContainer,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-              IconButton(
-                onPressed: onEditPressed,
-                icon: Icon(Icons.edit_outlined, color: context.colors.primary),
-              ),
-              IconButton(
-                onPressed: onDeletePressed,
-                icon: Icon(Icons.delete_outline, color: context.colors.error),
-              ),
-            ],
+      padding: EdgeInsets.symmetric(horizontal: context.insets.sm.w),
+      child: AdaptiveExpansionTile(
+        title: Text(
+          localizedContactCleanerRuleLabel(rule),
+          style: context.textStyles.titleMedium.copyWith(
+            color: context.colors.onPrimaryContainer,
+            fontWeight: FontWeight.w600,
           ),
-          SizedBox(height: context.insets.md.h),
+        ),
+        subtitle: Text(
+          LocaleKeys.contact_cleaner_rule_country_code.tr(
+            namedArgs: {'code': rule.canonicalCountryCode},
+          ),
+        ),
+        trailing: AdaptivePopupMenuButton.widget<String>(
+          items: [
+            AdaptivePopupMenuItem(
+              label: LocaleKeys.contact_cleaner_rule_update.tr(),
+              icon: Icons.edit_outlined,
+              value: 'edit',
+            ),
+            const AdaptivePopupMenuDivider(),
+            AdaptivePopupMenuItem(
+              label: LocaleKeys.contact_cleaner_delete_rule_action.tr(),
+              icon: Icons.delete_outline,
+              value: 'delete',
+            ),
+          ],
+          onSelected: (int index, AdaptivePopupMenuItem<String> item) {
+            if (item.value == 'edit') {
+              onEditPressed();
+            } else if (item.value == 'delete') {
+              onDeletePressed();
+            }
+          },
+          child: Icon(Icons.more_horiz, color: context.colors.onSecondary),
+        ),
+        childrenPadding: EdgeInsets.only(
+          left: context.insets.sm.w,
+          right: context.insets.sm.w,
+          bottom: context.insets.md.h,
+        ),
+        children: [
           Wrap(
             spacing: context.insets.sm.w,
             runSpacing: context.insets.sm.h,
@@ -255,14 +232,6 @@ class _RuleCard extends StatelessWidget {
                 label: LocaleKeys.contact_cleaner_rule_length.tr(
                   namedArgs: {'length': '${rule.expectedLength}'},
                 ),
-                backgroundColor: context.colors.secondary,
-              ),
-              ContactCleanerTag(
-                label: LocaleKeys.contact_cleaner_rule_country_code.tr(
-                  namedArgs: {'code': rule.canonicalCountryCode},
-                ),
-                backgroundColor: context.colors.brand10Color,
-                textColor: context.colors.primary,
               ),
               ContactCleanerTag(
                 label: rule.removeTrunkPrefix
@@ -271,21 +240,20 @@ class _RuleCard extends StatelessWidget {
                       )
                     : LocaleKeys.contact_cleaner_rule_no_prefix_removal.tr(),
                 backgroundColor: rule.removeTrunkPrefix
-                    ? context.colors.primaryFixedLight
+                    ? context.colors.brand10Color
                     : context.colors.secondary,
                 textColor: rule.removeTrunkPrefix
-                    ? context.colors.primaryFixed
+                    ? context.colors.primary
                     : context.colors.onPrimaryContainer,
               ),
             ],
           ),
-          SizedBox(height: context.insets.md.h),
+          SizedBox(height: context.insets.sm.h),
           ContactCleanerLabeledValue(
             label: LocaleKeys.contact_cleaner_rule_matching_prefixes.tr(),
             value: rule.prefixes.isEmpty
                 ? LocaleKeys.contact_cleaner_rule_any_prefix.tr()
                 : rule.prefixes.join(', '),
-            backgroundColor: context.colors.secondary,
           ),
         ],
       ),

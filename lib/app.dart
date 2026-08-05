@@ -1,3 +1,4 @@
+import 'package:adaptive_platform_ui/adaptive_platform_ui.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -56,26 +57,24 @@ class _AppState extends ConsumerState<App> {
     );
     return DesignSystemApp(
       appTheme: theme,
-      builder: (context) => MaterialApp.router(
+      // The whole app now relies on adaptive_platform_ui for its shell:
+      // AdaptiveApp renders Material on Android and native Cupertino / iOS 26
+      // liquid-glass on iOS automatically, while keeping our auto_route config.
+      builder: (context) => AdaptiveApp.router(
         routerConfig: appRouter.config(
           navigatorObservers: () => [AppAutoRouterObserver()],
           reevaluateListenable: autoRouteNotifier,
         ),
         builder: (context, widget) => widget ?? const SizedBox(),
-
         locale: context.locale,
-        debugShowCheckedModeBanner: false,
-        theme: theme.themeData,
+        materialLightTheme: theme.themeData,
+        materialDarkTheme: theme.themeData,
         localizationsDelegates: context.localizationDelegates,
         supportedLocales: context.supportedLocales,
         title: Constants.get.appName,
-        scrollBehavior: const ScrollBehaviorModified(),
-
         themeMode: mode.value == AppThemeMode.dark
             ? ThemeMode.dark
             : ThemeMode.light,
-        color: context.colors.primary,
-        // builder: (context, widget) => widget ?? const SizedBox(),
       ),
     );
   }
