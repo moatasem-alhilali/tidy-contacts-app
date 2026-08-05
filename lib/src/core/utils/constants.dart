@@ -3,7 +3,7 @@ class Constants {
 
   static Constants get = Constants._();
 
-  String appName = 'Contact Cleaner';
+  String appName = 'Tidy Contacts';
 
   /// keys for local storage
   String tokenKey = 'token';
