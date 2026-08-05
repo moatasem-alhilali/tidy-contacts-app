@@ -315,6 +315,7 @@ class ContactCleanerController extends Notifier<ContactCleanerState> {
   }
 
   static List<NormalizationRule> get _defaultRules => <NormalizationRule>[
+    // Saudi mobile written with the national trunk 0: 05XXXXXXXX (10 digits).
     NormalizationRule(
       id: 'sa_mobile_10',
       label: LocaleKeys.contact_cleaner_default_rule_sa_mobile.tr(),
@@ -324,12 +325,31 @@ class ContactCleanerController extends Notifier<ContactCleanerState> {
       removeTrunkPrefix: true,
       trunkPrefix: '0',
     ),
+    // Saudi mobile without the trunk 0: 5XXXXXXXX (9 digits).
+    NormalizationRule(
+      id: 'sa_mobile_9',
+      label: LocaleKeys.contact_cleaner_default_rule_sa_mobile_short.tr(),
+      expectedLength: 9,
+      prefixes: <String>['5'],
+      countryCode: '+966',
+    ),
+    // Yemen mobile without the trunk 0: 7XXXXXXXX (9 digits).
     NormalizationRule(
       id: 'ye_mobile_9',
       label: LocaleKeys.contact_cleaner_default_rule_ye_mobile.tr(),
       expectedLength: 9,
-      prefixes: <String>['77', '78', '73', '71', '70'],
+      prefixes: <String>['70', '71', '73', '77', '78'],
       countryCode: '+967',
+    ),
+    // Yemen mobile written with the trunk 0: 07XXXXXXXX (10 digits).
+    NormalizationRule(
+      id: 'ye_mobile_10',
+      label: LocaleKeys.contact_cleaner_default_rule_ye_mobile_trunk.tr(),
+      expectedLength: 10,
+      prefixes: <String>['070', '071', '073', '077', '078'],
+      countryCode: '+967',
+      removeTrunkPrefix: true,
+      trunkPrefix: '0',
     ),
   ];
 }

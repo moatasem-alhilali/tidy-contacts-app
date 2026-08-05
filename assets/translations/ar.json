@@ -135,6 +135,8 @@
   "contact_cleaner_rule_local_prefix_hint": "0",
   "contact_cleaner_rule_save": "حفظ القاعدة",
   "contact_cleaner_rule_update": "تحديث القاعدة",
-  "contact_cleaner_default_rule_sa_mobile": "أرقام السعودية المحلية",
-  "contact_cleaner_default_rule_ye_mobile": "أرقام اليمن المحلية"
+  "contact_cleaner_default_rule_sa_mobile": "جوال سعودي (05…)",
+  "contact_cleaner_default_rule_sa_mobile_short": "جوال سعودي (5…)",
+  "contact_cleaner_default_rule_ye_mobile": "جوال يمني (7…)",
+  "contact_cleaner_default_rule_ye_mobile_trunk": "جوال يمني (07…)"
 }

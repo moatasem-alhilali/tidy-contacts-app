@@ -135,18 +135,45 @@ class ContactAnalysisEngine {
 
     String? normalizedNumber;
     String? matchedRuleId;
+    bool hadEmbeddedCountryCode = false;
     if (startsWithPlus) {
+      // Already international, e.g. +966512345678 -> +966512345678.
       normalizedNumber = digitsOnly.isEmpty ? null : '+$digitsOnly';
     } else if (startsWithDoubleZero) {
+      // 00 international prefix, e.g. 00966512345678 -> +966512345678.
       final String stripped = digitsOnly.substring(2);
       normalizedNumber = stripped.isEmpty ? null : '+$stripped';
     } else if (digitsOnly.isNotEmpty) {
+      // 1) Direct local match, e.g. 0512345678 (SA) / 771234567 (YE).
       final NormalizationRule? matchingRule = rules.firstWhereOrNull(
         (NormalizationRule rule) => rule.matches(digitsOnly),
       );
       if (matchingRule != null) {
         matchedRuleId = matchingRule.id;
         normalizedNumber = matchingRule.apply(digitsOnly);
+      } else {
+        // 2) The number may already embed a rule's country code but without a
+        // leading '+' or '00', e.g. 966512345678 or 96777123456. Recognize it
+        // only when the national remainder is valid for that rule, so we never
+        // add a '+' to an ambiguous local number.
+        for (final NormalizationRule rule in rules) {
+          final String countryDigits = _extractDigits(rule.canonicalCountryCode);
+          if (countryDigits.isEmpty ||
+              !digitsOnly.startsWith(countryDigits) ||
+              digitsOnly.length <= countryDigits.length) {
+            continue;
+          }
+          final String national = digitsOnly.substring(countryDigits.length);
+          final String localCandidate = rule.removeTrunkPrefix
+              ? '${rule.trunkPrefix}$national'
+              : national;
+          if (rule.matches(localCandidate)) {
+            matchedRuleId = rule.id;
+            hadEmbeddedCountryCode = true;
+            normalizedNumber = '+$countryDigits$national';
+            break;
+          }
+        }
       }
     }
 
@@ -157,7 +184,10 @@ class ContactAnalysisEngine {
     final bool isInvalidLength =
         digitLength > 0 && (digitLength < 7 || digitLength > 15);
     final bool isMissingCountryCode =
-        digitsOnly.isNotEmpty && !startsWithPlus && !startsWithDoubleZero;
+        digitsOnly.isNotEmpty &&
+        !startsWithPlus &&
+        !startsWithDoubleZero &&
+        !hadEmbeddedCountryCode;
     final bool isUnmatchedLocal = isMissingCountryCode && matchedRuleId == null;
     final bool wasCorrected =
         normalizedNumber != null && normalizedNumber != canonicalInput;

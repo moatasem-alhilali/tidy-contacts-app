@@ -140,6 +140,8 @@ abstract class  LocaleKeys {
   static const contact_cleaner_rule_save = 'contact_cleaner_rule_save';
   static const contact_cleaner_rule_update = 'contact_cleaner_rule_update';
   static const contact_cleaner_default_rule_sa_mobile = 'contact_cleaner_default_rule_sa_mobile';
+  static const contact_cleaner_default_rule_sa_mobile_short = 'contact_cleaner_default_rule_sa_mobile_short';
   static const contact_cleaner_default_rule_ye_mobile = 'contact_cleaner_default_rule_ye_mobile';
+  static const contact_cleaner_default_rule_ye_mobile_trunk = 'contact_cleaner_default_rule_ye_mobile_trunk';
 
 }

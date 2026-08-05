@@ -135,6 +135,8 @@
   "contact_cleaner_rule_local_prefix_hint": "0",
   "contact_cleaner_rule_save": "Save rule",
   "contact_cleaner_rule_update": "Update rule",
-  "contact_cleaner_default_rule_sa_mobile": "Saudi local mobile numbers",
-  "contact_cleaner_default_rule_ye_mobile": "Yemen local mobile numbers"
+  "contact_cleaner_default_rule_sa_mobile": "Saudi mobile (05…)",
+  "contact_cleaner_default_rule_sa_mobile_short": "Saudi mobile (5…)",
+  "contact_cleaner_default_rule_ye_mobile": "Yemen mobile (7…)",
+  "contact_cleaner_default_rule_ye_mobile_trunk": "Yemen mobile (07…)"
 }

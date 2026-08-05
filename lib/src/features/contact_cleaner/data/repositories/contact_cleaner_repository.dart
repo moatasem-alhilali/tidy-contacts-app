@@ -85,7 +85,13 @@ class ContactRepository {
           mergedContactIds.contains(contactPlan.contactId)) {
         continue;
       }
-      final Contact? sourceContact = scannedContactsById[contactPlan.contactId];
+      // IMPORTANT: fetch the FULL contact (emails, addresses, photo, notes…)
+      // before updating. Updating from the scan-only copy (name + phone) would
+      // wipe every other field. Fall back to the scan copy only if the full
+      // fetch fails.
+      final Contact? sourceContact =
+          await fetchFullContact(contactPlan.contactId) ??
+          scannedContactsById[contactPlan.contactId];
       if (sourceContact == null) {
         continue;
       }
@@ -153,11 +159,22 @@ class ContactRepository {
   ) {
     final List<Phone> phones = <Phone>[];
     for (final PlannedPhoneChange change in planEntry.phoneChanges) {
-      if (!change.keep || change.entryIndex >= sourceContact.phones.length) {
+      if (change.entryIndex >= sourceContact.phones.length) {
         continue;
       }
       final Phone phone = sourceContact.phones[change.entryIndex];
-      if (change.needsReplacement) {
+      // Safety guard: if the phone at this position no longer matches the
+      // number we analyzed (order/content drifted since the scan), keep it
+      // untouched instead of risking a wrong edit or deletion.
+      final bool matchesAnalyzed = phone.number == change.originalNumber;
+      if (!change.keep) {
+        if (matchesAnalyzed) {
+          continue; // safe to remove
+        }
+        phones.add(phone); // drifted: keep it, do not delete
+        continue;
+      }
+      if (change.needsReplacement && matchesAnalyzed) {
         phones.add(phone.copyWith(number: change.replacementNumber));
       } else {
         phones.add(phone);
@@ -197,12 +214,17 @@ class ContactRepository {
           continue;
         }
         final Phone phone = contact.phones[change.entryIndex];
+        // Only apply the normalized replacement when the phone still matches
+        // what we analyzed; otherwise keep the current number untouched.
+        final String? replacement = phone.number == change.originalNumber
+            ? change.replacementNumber
+            : null;
         if (preserveMetadata) {
           mergedPhones.add(
-            phone.copyWith(number: change.replacementNumber ?? phone.number),
+            phone.copyWith(number: replacement ?? phone.number),
           );
         } else {
-          mergedPhones.add(_detachPhone(phone, change.replacementNumber));
+          mergedPhones.add(_detachPhone(phone, replacement));
         }
       }
     }
