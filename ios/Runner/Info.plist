@@ -55,29 +55,9 @@
 	</array>
 	-->
 
-	<!-- Required for connectivity_plus and some network plugins -->
-	<key>NSLocalNetworkUsageDescription</key>
-	<string>This app uses your local network to detect connectivity status.</string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Required for connectivity on certain networks.</string>
-	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>Required for connectivity on certain networks.</string>
-	<key>NSLocationAlwaysUsageDescription</key>
-	<string>Required for connectivity on certain networks.</string>
+	<!-- Contacts access — core feature of the app -->
 	<key>NSContactsUsageDescription</key>
 	<string>يحتاج التطبيق إلى الوصول لجهات الاتصال حتى يتمكن من تحليل الأرقام وتنظيفها مباشرة على جهازك.</string>
-
-	<!-- Notification permissions -->
-	<key>NSUserNotificationUsageDescription</key>
-	<string>This app uses notifications to keep you updated with important information.</string>
-
-	<!-- Photo picker (for image_picker or similar plugins) -->
-	<key>NSCameraUsageDescription</key>
-	<string>نحتاج لاستخدام الكاميرا حتى تتمكن من تصوير ورفع الصور داخل التطبيق.</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>نحتاج للوصول لمعرض الصور حتى تتمكن من اختيار أو رفع صورة من جهازك.</string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>نحتاج لاستخدام الميكروفون في حال احتجت تسجيل صوت أثناء استخدام التطبيق.</string>
 
 	<!-- Network security (required for most network plugins) -->
 	<key>NSAppTransportSecurity</key>
