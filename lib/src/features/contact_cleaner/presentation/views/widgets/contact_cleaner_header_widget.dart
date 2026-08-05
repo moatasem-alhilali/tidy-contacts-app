@@ -14,7 +14,6 @@ class ContactCleanerHeaderWidget extends StatelessWidget {
     required this.onScanPressed,
     required this.onBackupPressed,
     required this.onApplyPressed,
-    required this.onShowcasePressed,
     super.key,
   });
 
@@ -22,7 +21,6 @@ class ContactCleanerHeaderWidget extends StatelessWidget {
   final VoidCallback onScanPressed;
   final VoidCallback onBackupPressed;
   final VoidCallback onApplyPressed;
-  final VoidCallback onShowcasePressed;
 
   @override
   Widget build(BuildContext context) {
@@ -39,43 +37,23 @@ class ContactCleanerHeaderWidget extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      LocaleKeys.contact_cleaner_title.tr(),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 22,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      LocaleKeys.contact_cleaner_subtitle.tr(),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.85),
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: kGapSm),
-              IconButton(
-                onPressed: onShowcasePressed,
-                tooltip: 'Adaptive UI',
-                style: IconButton.styleFrom(
-                  backgroundColor: Colors.white.withValues(alpha: 0.18),
-                ),
-                icon: const Icon(Icons.auto_awesome, color: Colors.white),
-              ),
-            ],
+          Text(
+            LocaleKeys.contact_cleaner_title.tr(),
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            LocaleKeys.contact_cleaner_subtitle.tr(),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.85),
+              fontSize: 12,
+            ),
           ),
           const SizedBox(height: kGapLg),
           Row(

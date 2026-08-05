@@ -9,7 +9,6 @@ import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_manager/design-system-package/src/utils/request_state.dart';
 import 'package:hive_manager/generated/codegen_loader.g.dart';
-import 'package:hive_manager/src/features/adaptive_showcase/adaptive_showcase_screen.dart';
 import 'package:hive_manager/src/features/contact_cleaner/data/models/contact_cleaner_models.dart';
 import 'package:hive_manager/src/features/contact_cleaner/presentation/providers/contact_cleaner_controller.dart';
 import 'package:hive_manager/src/features/contact_cleaner/presentation/providers/contact_cleaner_state.dart';
@@ -46,14 +45,6 @@ class _MainScreenState extends ConsumerState<MainScreen> {
 
     return AdaptiveScaffold(
       body: _buildBody(context, state, controller),
-    );
-  }
-
-  void _openShowcase(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => const AdaptiveShowcaseScreen(),
-      ),
     );
   }
 
@@ -121,7 +112,6 @@ class _MainScreenState extends ConsumerState<MainScreen> {
       children: [
         ContactCleanerHeaderWidget(
           state: state,
-          onShowcasePressed: () => _openShowcase(context),
           onScanPressed: () async {
             await controller.scanContacts();
             _showStateFeedback(
