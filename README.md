@@ -51,8 +51,8 @@
 | **Local storage** | `hive`, `shared_preferences`, `flutter_secure_storage` |
 | **Contacts** | `flutter_contacts` |
 | **Localization** | `easy_localization` |
-| **UI / UX** | `flutter_screenutil`, `skeletonizer`, `modal_bottom_sheet`, `pinput` |
-| **Files & sharing** | `file_picker`, `media_store_plus`, `open_file`, `share_plus` |
+| **UI / UX** | `flutter_screenutil`, `skeletonizer`, `modal_bottom_sheet`, `pinput`, `cached_network_image` |
+| **Sharing** | `share_plus` |
 | **Codegen** | `freezed`, `json_serializable`, `build_runner`, `flutter_gen` |
 
 > ℹ️ Firebase (Analytics / Messaging / Crashlytics) is currently **disabled** — all Firebase code is commented out and can be re-enabled later.

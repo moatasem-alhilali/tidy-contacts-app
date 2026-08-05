@@ -4,7 +4,6 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_manager/src/core/models/session.dart';
 import 'package:hive_manager/src/core/network/dio/api_keys.dart';
-import 'package:hive_manager/src/core/network/dio/protected_routes.dart';
 import 'package:hive_manager/src/core/provider/language_state.dart';
 
 import 'package:hive_manager/src/core/utils/logger.dart';

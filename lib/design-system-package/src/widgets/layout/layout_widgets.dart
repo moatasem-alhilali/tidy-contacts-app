@@ -5,6 +5,3 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 
 import 'package:hive_manager/design-system-package/siolla_design_system.dart';
 
-part 'adaptive_widget.dart';
-part 'page_transition_switcher_widget.dart';
-part 'responsive_widget.dart';
