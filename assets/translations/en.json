@@ -54,6 +54,7 @@
   "contact_cleaner_invalid_count": "Invalid numbers: {count}",
   "contact_cleaner_no_formatting_title": "No formatting issues",
   "contact_cleaner_no_formatting_subtitle": "Existing numbers are already international or match the current rules.",
+  "contact_cleaner_clean_score": "Clean",
   "contact_cleaner_total_contacts": "Total contacts",
   "contact_cleaner_total_numbers": "Total numbers",
   "contact_cleaner_missing_country": "Missing country code",

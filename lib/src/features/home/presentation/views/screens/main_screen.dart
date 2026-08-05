@@ -45,49 +45,34 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     );
 
     return AdaptiveScaffold(
-      appBar: AdaptiveAppBar(
-        title: LocaleKeys.contact_cleaner_title.tr(),
-        subtitle: LocaleKeys.contact_cleaner_subtitle.tr(),
-        actions: [
-          AdaptiveAppBarAction(
-            icon: Icons.auto_awesome_outlined,
-            iosSymbol: 'sparkles',
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                builder: (_) => const AdaptiveShowcaseScreen(),
-              ),
-            ),
-          ),
-        ],
-      ),
-      body: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(
-            kScreenPad,
-            kGapSm,
-            kScreenPad,
-            0,
-          ),
-          child: _buildContent(context, state, controller),
-        ),
+      body: _buildBody(context, state, controller),
+    );
+  }
+
+  void _openShowcase(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => const AdaptiveShowcaseScreen(),
       ),
     );
   }
 
-  Widget _buildContent(
+  Widget _buildBody(
     BuildContext context,
     ContactCleanerState state,
     ContactCleanerController controller,
   ) {
+    // Pre-scan / blocked states take the whole screen.
     if (!state.isSupported) {
-      return ContactCleanerFailureState(
-        icon: Icons.phonelink_erase_outlined,
-        title: LocaleKeys.contact_cleaner_platform_not_supported_title.tr(),
-        subtitle: LocaleKeys.contact_cleaner_platform_not_supported_subtitle
-            .tr(),
-        buttonText: LocaleKeys.retry.tr(),
-        onPressed: controller.initialize,
+      return SafeArea(
+        child: ContactCleanerFailureState(
+          icon: Icons.phonelink_erase_outlined,
+          title: LocaleKeys.contact_cleaner_platform_not_supported_title.tr(),
+          subtitle: LocaleKeys.contact_cleaner_platform_not_supported_subtitle
+              .tr(),
+          buttonText: LocaleKeys.retry.tr(),
+          onPressed: controller.initialize,
+        ),
       );
     }
 
@@ -95,33 +80,40 @@ class _MainScreenState extends ConsumerState<MainScreen> {
       final bool shouldOpenSettings =
           state.permissionStatus.name.contains('permanently') ||
           state.permissionStatus == PermissionStatus.restricted;
-      return ContactCleanerFailureState(
-        icon: Icons.lock_outline,
-        title: LocaleKeys.contact_cleaner_permission_required_title.tr(),
-        subtitle: LocaleKeys.contact_cleaner_permission_required_subtitle.tr(),
-        buttonText: shouldOpenSettings
-            ? LocaleKeys.open_settings.tr()
-            : LocaleKeys.request_permission.tr(),
-        onPressed: shouldOpenSettings
-            ? controller.openSettings
-            : controller.requestPermissionAndScan,
+      return SafeArea(
+        child: ContactCleanerFailureState(
+          icon: Icons.lock_outline,
+          title: LocaleKeys.contact_cleaner_permission_required_title.tr(),
+          subtitle: LocaleKeys.contact_cleaner_permission_required_subtitle
+              .tr(),
+          buttonText: shouldOpenSettings
+              ? LocaleKeys.open_settings.tr()
+              : LocaleKeys.request_permission.tr(),
+          onPressed: shouldOpenSettings
+              ? controller.openSettings
+              : controller.requestPermissionAndScan,
+        ),
       );
     }
 
     if (state.isScanning && !state.hasAnalysis) {
-      return Center(
-        child: CircularProgressIndicator(
-          color: Theme.of(context).colorScheme.primary,
+      return SafeArea(
+        child: Center(
+          child: CircularProgressIndicator(
+            color: Theme.of(context).colorScheme.primary,
+          ),
         ),
       );
     }
 
     if (state.scanState == RequestState.error && !state.hasAnalysis) {
-      return ContactCleanerFailureState(
-        title: LocaleKeys.contact_cleaner_read_failed_title.tr(),
-        subtitle: state.errorMessage,
-        buttonText: LocaleKeys.retry.tr(),
-        onPressed: controller.scanContacts,
+      return SafeArea(
+        child: ContactCleanerFailureState(
+          title: LocaleKeys.contact_cleaner_read_failed_title.tr(),
+          subtitle: state.errorMessage,
+          buttonText: LocaleKeys.retry.tr(),
+          onPressed: controller.scanContacts,
+        ),
       );
     }
 
@@ -129,6 +121,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
       children: [
         ContactCleanerHeaderWidget(
           state: state,
+          onShowcasePressed: () => _openShowcase(context),
           onScanPressed: () async {
             await controller.scanContacts();
             _showStateFeedback(
@@ -140,40 +133,46 @@ class _MainScreenState extends ConsumerState<MainScreen> {
           onBackupPressed: () => _handleBackup(context, controller),
           onApplyPressed: () => _showApplyConfirmation(context, controller),
         ),
-        _TabSelector(
-          selectedIndex: _tab,
-          onChanged: (int index) => setState(() => _tab = index),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(kScreenPad, kGapMd, kScreenPad, 0),
+          child: _TabSelector(
+            selectedIndex: _tab,
+            onChanged: (int index) => setState(() => _tab = index),
+          ),
         ),
         const SizedBox(height: kGapMd),
         Expanded(
-          child: IndexedStack(
-            index: _tab,
-            children: [
-              ContactCleanerOverviewTab(analysis: state.analysis),
-              ContactCleanerRulesTab(
-                rules: state.rules,
-                options: state.options,
-                onNormalizeChanged: controller.setNormalizeNumbers,
-                onWithinContactChanged:
-                    controller.setRemoveDuplicatesWithinContact,
-                onCrossContactChanged: controller.setCrossContactAction,
-                onAutoCleanPressed: () {
-                  controller.applyAutoCleanPreset();
-                  _snack(
-                    context,
-                    LocaleKeys.contact_cleaner_auto_clean_preset_updated.tr(),
-                    AdaptiveSnackBarType.success,
-                  );
-                },
-                onAddRulePressed: () => _showRuleSheet(context, controller),
-                onEditRulePressed: (NormalizationRule rule) =>
-                    _showRuleSheet(context, controller, initialRule: rule),
-                onDeleteRulePressed: (String ruleId) =>
-                    _showDeleteRuleConfirmation(context, controller, ruleId),
-              ),
-              ContactCleanerDuplicatesTab(analysis: state.analysis),
-              ContactCleanerPreviewTab(plan: state.plan),
-            ],
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: kScreenPad),
+            child: IndexedStack(
+              index: _tab,
+              children: [
+                ContactCleanerOverviewTab(analysis: state.analysis),
+                ContactCleanerRulesTab(
+                  rules: state.rules,
+                  options: state.options,
+                  onNormalizeChanged: controller.setNormalizeNumbers,
+                  onWithinContactChanged:
+                      controller.setRemoveDuplicatesWithinContact,
+                  onCrossContactChanged: controller.setCrossContactAction,
+                  onAutoCleanPressed: () {
+                    controller.applyAutoCleanPreset();
+                    _snack(
+                      context,
+                      LocaleKeys.contact_cleaner_auto_clean_preset_updated.tr(),
+                      AdaptiveSnackBarType.success,
+                    );
+                  },
+                  onAddRulePressed: () => _showRuleSheet(context, controller),
+                  onEditRulePressed: (NormalizationRule rule) =>
+                      _showRuleSheet(context, controller, initialRule: rule),
+                  onDeleteRulePressed: (String ruleId) =>
+                      _showDeleteRuleConfirmation(context, controller, ruleId),
+                ),
+                ContactCleanerDuplicatesTab(analysis: state.analysis),
+                ContactCleanerPreviewTab(plan: state.plan),
+              ],
+            ),
           ),
         ),
       ],

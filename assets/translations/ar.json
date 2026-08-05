@@ -54,6 +54,7 @@
   "contact_cleaner_invalid_count": "غير صالحة: {count}",
   "contact_cleaner_no_formatting_title": "لا توجد مشكلات تنسيق",
   "contact_cleaner_no_formatting_subtitle": "الأرقام الموجودة إما بصيغة دولية أو مطابقة للقواعد الحالية.",
+  "contact_cleaner_clean_score": "نظيفة",
   "contact_cleaner_total_contacts": "إجمالي الجهات",
   "contact_cleaner_total_numbers": "إجمالي الأرقام",
   "contact_cleaner_missing_country": "بدون رمز دولة",

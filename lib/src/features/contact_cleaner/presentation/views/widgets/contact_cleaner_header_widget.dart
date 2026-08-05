@@ -1,12 +1,12 @@
-// Action header for the Contact Cleaner: scan / backup / apply.
-// AdaptiveCard + AdaptiveButton, styled from the standard ThemeData.
+// Header — redesigned as a full-bleed gradient HERO band (not a card).
+// It owns the top safe-area inset, shows the title + a showcase shortcut,
+// three round glass actions (scan / backup / apply) and a status strip.
 
-import 'package:adaptive_platform_ui/adaptive_platform_ui.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_manager/generated/codegen_loader.g.dart';
 import 'package:hive_manager/src/features/contact_cleaner/presentation/providers/contact_cleaner_state.dart';
-import 'package:hive_manager/src/features/contact_cleaner/presentation/views/widgets/contact_cleaner_common_widgets.dart';
+import 'package:hive_manager/src/features/contact_cleaner/presentation/views/widgets/contact_cleaner_design.dart';
 
 class ContactCleanerHeaderWidget extends StatelessWidget {
   const ContactCleanerHeaderWidget({
@@ -14,6 +14,7 @@ class ContactCleanerHeaderWidget extends StatelessWidget {
     required this.onScanPressed,
     required this.onBackupPressed,
     required this.onApplyPressed,
+    required this.onShowcasePressed,
     super.key,
   });
 
@@ -21,108 +22,125 @@ class ContactCleanerHeaderWidget extends StatelessWidget {
   final VoidCallback onScanPressed;
   final VoidCallback onBackupPressed;
   final VoidCallback onApplyPressed;
+  final VoidCallback onShowcasePressed;
 
   @override
   Widget build(BuildContext context) {
-    final ColorScheme cs = Theme.of(context).colorScheme;
-    final TextTheme tt = Theme.of(context).textTheme;
-    final String? backupFileName = state.lastBackupPath?.split('/').last;
+    final double topInset = MediaQuery.paddingOf(context).top;
     final bool canApply = state.hasChangesReady && !state.isApplying;
 
-    return ContactCleanerPanel(
-      margin: const EdgeInsets.only(bottom: kGapMd),
-      padding: const EdgeInsets.all(kGapLg),
+    return HeroBand(
+      padding: EdgeInsets.fromLTRB(
+        kGapLg,
+        topInset + kGapMd,
+        kGapLg,
+        kGapLg,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            LocaleKeys.contact_cleaner_header_title.tr(),
-            style: tt.titleLarge?.copyWith(
-              color: cs.onSurface,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: kGapXs),
-          Text(
-            LocaleKeys.contact_cleaner_header_subtitle.tr(),
-            style: tt.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
-          ),
-          if (backupFileName != null) ...[
-            const SizedBox(height: kGapMd),
-            ContactCleanerTag(
-              label: LocaleKeys.contact_cleaner_last_backup.tr(
-                namedArgs: {'name': backupFileName},
-              ),
-              icon: Icons.folder_open_outlined,
-            ),
-          ],
-          const SizedBox(height: kGapLg),
-          SizedBox(
-            width: double.infinity,
-            child: AdaptiveButton(
-              onPressed: onScanPressed,
-              enabled: !state.isScanning,
-              size: AdaptiveButtonSize.large,
-              style: state.hasAnalysis
-                  ? AdaptiveButtonStyle.tinted
-                  : AdaptiveButtonStyle.filled,
-              label: state.isScanning
-                  ? LocaleKeys.contact_cleaner_scanning.tr()
-                  : state.hasAnalysis
-                  ? LocaleKeys.contact_cleaner_rescan.tr()
-                  : LocaleKeys.contact_cleaner_start_scan.tr(),
-            ),
-          ),
-          const SizedBox(height: kGapSm),
           Row(
             children: [
               Expanded(
-                child: AdaptiveButton(
-                  onPressed: onBackupPressed,
-                  enabled: !state.isBackingUp,
-                  style: AdaptiveButtonStyle.tinted,
-                  label: state.isBackingUp
-                      ? LocaleKeys.contact_cleaner_exporting.tr()
-                      : LocaleKeys.contact_cleaner_backup.tr(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      LocaleKeys.contact_cleaner_title.tr(),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      LocaleKeys.contact_cleaner_subtitle.tr(),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.85),
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(width: kGapSm),
+              IconButton(
+                onPressed: onShowcasePressed,
+                tooltip: 'Adaptive UI',
+                style: IconButton.styleFrom(
+                  backgroundColor: Colors.white.withValues(alpha: 0.18),
+                ),
+                icon: const Icon(Icons.auto_awesome, color: Colors.white),
+              ),
+            ],
+          ),
+          const SizedBox(height: kGapLg),
+          Row(
+            children: [
               Expanded(
-                child: AdaptiveButton(
-                  onPressed: onApplyPressed,
+                child: HeroAction(
+                  icon: Icons.radar,
+                  busy: state.isScanning,
+                  label: state.hasAnalysis
+                      ? LocaleKeys.contact_cleaner_rescan.tr()
+                      : LocaleKeys.contact_cleaner_start_scan.tr(),
+                  onTap: onScanPressed,
+                ),
+              ),
+              Expanded(
+                child: HeroAction(
+                  icon: Icons.cloud_download_outlined,
+                  busy: state.isBackingUp,
+                  label: LocaleKeys.contact_cleaner_backup.tr(),
+                  onTap: onBackupPressed,
+                ),
+              ),
+              Expanded(
+                child: HeroAction(
+                  icon: Icons.auto_fix_high,
+                  busy: state.isApplying,
                   enabled: canApply,
-                  label: state.isApplying
-                      ? LocaleKeys.contact_cleaner_applying.tr()
-                      : LocaleKeys.contact_cleaner_apply_fixes.tr(),
+                  label: LocaleKeys.contact_cleaner_apply_fixes.tr(),
+                  onTap: onApplyPressed,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: kGapMd),
-          DecoratedBox(
-            decoration: BoxDecoration(
-              color: cs.primaryContainer,
-              borderRadius: kRadiusTile,
+          const SizedBox(height: kGapLg),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(
+              horizontal: kGapMd,
+              vertical: kGapSm,
             ),
-            child: Padding(
-              padding: const EdgeInsets.all(kGapMd),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(Icons.verified_user_outlined, color: cs.primary),
-                  const SizedBox(width: kGapSm),
-                  Expanded(
-                    child: Text(
-                      state.hasChangesReady
-                          ? LocaleKeys.contact_cleaner_changes_ready_note.tr()
-                          : LocaleKeys.contact_cleaner_no_changes_note.tr(),
-                      style: tt.bodyMedium?.copyWith(
-                        color: cs.onPrimaryContainer,
-                      ),
-                    ),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.15),
+              borderRadius: kRadiusPill,
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  state.hasChangesReady
+                      ? Icons.check_circle
+                      : Icons.shield_outlined,
+                  color: Colors.white,
+                  size: 18,
+                ),
+                const SizedBox(width: kGapSm),
+                Expanded(
+                  child: Text(
+                    state.hasChangesReady
+                        ? LocaleKeys.contact_cleaner_changes_ready_note.tr()
+                        : LocaleKeys.contact_cleaner_no_changes_note.tr(),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(color: Colors.white, fontSize: 12),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ],

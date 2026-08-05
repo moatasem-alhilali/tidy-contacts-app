@@ -58,6 +58,7 @@ abstract class  LocaleKeys {
   static const contact_cleaner_invalid_count = 'contact_cleaner_invalid_count';
   static const contact_cleaner_no_formatting_title = 'contact_cleaner_no_formatting_title';
   static const contact_cleaner_no_formatting_subtitle = 'contact_cleaner_no_formatting_subtitle';
+  static const contact_cleaner_clean_score = 'contact_cleaner_clean_score';
   static const contact_cleaner_total_contacts = 'contact_cleaner_total_contacts';
   static const contact_cleaner_total_numbers = 'contact_cleaner_total_numbers';
   static const contact_cleaner_missing_country = 'contact_cleaner_missing_country';
