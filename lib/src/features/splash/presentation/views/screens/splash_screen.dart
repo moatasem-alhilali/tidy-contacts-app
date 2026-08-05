@@ -1,3 +1,6 @@
+// Splash — redesigned: an "app icon" mark that scales + fades in, the name
+// underneath, and a slim animated progress bar. No typewriter/dots.
+
 import 'package:adaptive_platform_ui/adaptive_platform_ui.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
@@ -15,201 +18,122 @@ class SplashScreen extends ConsumerStatefulWidget {
 
 class _SplashScreenState extends ConsumerState<SplashScreen>
     with TickerProviderStateMixin {
-  late AnimationController _fadeController;
-  late AnimationController _typewriterController;
-  late AnimationController _loadingController;
-
-  late Animation<double> _fadeAnimation;
-  late Animation<double> _typewriterAnimation;
-  late Animation<double> _loadingAnimation;
-
-  String _displayText = '';
-  final String _fullText = Constants.get.appName;
+  late final AnimationController _reveal;
+  late final AnimationController _progress;
 
   @override
   void initState() {
     super.initState();
-    _initializeAnimations();
-    _startAnimations();
-  }
-
-  void _initializeAnimations() {
-    _fadeController = AnimationController(
-      duration: const Duration(milliseconds: 1000),
+    _reveal = AnimationController(
       vsync: this,
-    );
-    _typewriterController = AnimationController(
-      duration: const Duration(milliseconds: 2000),
+      duration: const Duration(milliseconds: 900),
+    )..forward();
+    _progress = AnimationController(
       vsync: this,
-    );
-    _loadingController = AnimationController(
-      duration: const Duration(milliseconds: 1000),
-      vsync: this,
-    );
+      duration: const Duration(milliseconds: 2400),
+    )..forward();
 
-    _fadeAnimation = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _fadeController, curve: Curves.easeInOut),
-    );
-    _typewriterAnimation = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _typewriterController, curve: Curves.easeInOut),
-    );
-    _loadingAnimation = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _loadingController, curve: Curves.easeInOut),
-    );
-  }
-
-  Future<void> _startAnimations() async {
-    await _fadeController.forward();
-
-    _typewriterController.addListener(() {
-      final double progress = _typewriterAnimation.value;
-      final int charCount = (progress * _fullText.length).round();
-      setState(() {
-        _displayText = _fullText.substring(0, charCount);
-      });
+    _progress.addStatusListener((AnimationStatus status) {
+      if (status == AnimationStatus.completed && mounted) {
+        context.router.replace(const MainRoute());
+      }
     });
-
-    await _typewriterController.forward();
-    _loadingController.repeat();
-
-    await Future<void>.delayed(const Duration(milliseconds: 1500));
-
-    if (mounted) {
-      context.router.replace(const MainRoute());
-    }
   }
 
   @override
   void dispose() {
-    _fadeController.dispose();
-    _typewriterController.dispose();
-    _loadingController.dispose();
+    _reveal.dispose();
+    _progress.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final ColorScheme cs = Theme.of(context).colorScheme;
+    final Curve curve = Curves.easeOutBack;
 
     return AdaptiveScaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const SizedBox(),
-            Column(
+      body: Stack(
+        children: [
+          Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                AnimatedBuilder(
-                  animation: _fadeAnimation,
-                  builder: (BuildContext context, Widget? child) {
-                    return Opacity(
-                      opacity: _fadeAnimation.value,
-                      child: RichText(
-                        textAlign: TextAlign.center,
-                        text: TextSpan(
-                          children: [
-                            TextSpan(
-                              text: _displayText,
-                              style: Theme.of(context).textTheme.displayLarge
-                                  ?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 48,
-                                    letterSpacing: 2,
-                                    color: cs.primary,
-                                    height: 1.2,
-                                  ),
-                            ),
-                            if (_typewriterAnimation.value < 1)
-                              TextSpan(
-                                text: '|',
-                                style: Theme.of(context).textTheme.displayLarge
-                                    ?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 48,
-                                      letterSpacing: 2,
-                                      color: cs.primary.withValues(alpha: 0.8),
-                                      height: 1.2,
-                                    ),
-                              ),
+                ScaleTransition(
+                  scale: CurvedAnimation(parent: _reveal, curve: curve),
+                  child: FadeTransition(
+                    opacity: _reveal,
+                    child: Container(
+                      width: 104,
+                      height: 104,
+                      decoration: BoxDecoration(
+                        borderRadius: const BorderRadius.all(
+                          Radius.circular(28),
+                        ),
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            cs.primary,
+                            Color.lerp(cs.primary, cs.tertiary, 0.6)!,
                           ],
                         ),
-                      ),
-                    );
-                  },
-                ),
-                AnimatedBuilder(
-                  animation: Listenable.merge([
-                    _typewriterAnimation,
-                    _loadingAnimation,
-                  ]),
-                  builder: (BuildContext context, Widget? child) {
-                    return Opacity(
-                      opacity: _typewriterAnimation.value,
-                      child: Column(
-                        children: [
-                          const SizedBox(height: 20),
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              for (int i = 0; i < 3; i++)
-                                AnimatedBuilder(
-                                  animation: _loadingAnimation,
-                                  builder:
-                                      (BuildContext context, Widget? child) {
-                                        final double delay = i * 0.2;
-                                        final double animationValue =
-                                            (_loadingAnimation.value + delay) %
-                                            1.0;
-                                        final double opacity =
-                                            (animationValue * 2).clamp(0.0, 1.0);
-                                        return Container(
-                                          margin: const EdgeInsets.symmetric(
-                                            horizontal: 4,
-                                          ),
-                                          width: 8,
-                                          height: 8,
-                                          decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            color: cs.primary.withValues(
-                                              alpha: opacity,
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                ),
-                            ],
+                        boxShadow: [
+                          BoxShadow(
+                            color: cs.primary.withValues(alpha: 0.35),
+                            blurRadius: 28,
+                            offset: const Offset(0, 12),
                           ),
                         ],
                       ),
-                    );
-                  },
+                      child: const Icon(
+                        Icons.contacts_rounded,
+                        color: Colors.white,
+                        size: 52,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                FadeTransition(
+                  opacity: _reveal,
+                  child: Text(
+                    Constants.get.appName,
+                    style: TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.5,
+                      color: cs.onSurface,
+                    ),
+                  ),
                 ),
               ],
             ),
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: AnimatedBuilder(
-                animation: _fadeAnimation,
-                builder: (BuildContext context, Widget? child) {
-                  return Opacity(
-                    opacity: _fadeAnimation.value * 0.7,
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 32),
-                      child: Text(
-                        '© ${DateTime.now().year} $_fullText',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: cs.onSurface.withValues(alpha: 0.6),
-                          fontSize: 12,
-                        ),
-                        textAlign: TextAlign.center,
+          ),
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 48),
+              child: SizedBox(
+                width: 160,
+                child: AnimatedBuilder(
+                  animation: _progress,
+                  builder: (BuildContext context, Widget? child) {
+                    return ClipRRect(
+                      borderRadius: const BorderRadius.all(Radius.circular(999)),
+                      child: LinearProgressIndicator(
+                        value: _progress.value,
+                        minHeight: 4,
+                        backgroundColor: cs.surfaceContainerHighest,
+                        valueColor: AlwaysStoppedAnimation<Color>(cs.primary),
                       ),
-                    ),
-                  );
-                },
+                    );
+                  },
+                ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
