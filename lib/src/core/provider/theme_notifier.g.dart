@@ -1,0 +1,54 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
+
+part of 'theme_notifier.dart';
+
+// **************************************************************************
+// RiverpodGenerator
+// **************************************************************************
+
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
+
+@ProviderFor(ThemeNotifier)
+final themeProvider = ThemeNotifierProvider._();
+
+final class ThemeNotifierProvider
+    extends $AsyncNotifierProvider<ThemeNotifier, AppThemeMode> {
+  ThemeNotifierProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'themeProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$themeNotifierHash();
+
+  @$internal
+  @override
+  ThemeNotifier create() => ThemeNotifier();
+}
+
+String _$themeNotifierHash() => r'878cbf42e6203a87e83f522b651ad90007907a4c';
+
+abstract class _$ThemeNotifier extends $AsyncNotifier<AppThemeMode> {
+  FutureOr<AppThemeMode> build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref = this.ref as $Ref<AsyncValue<AppThemeMode>, AppThemeMode>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<AppThemeMode>, AppThemeMode>,
+              AsyncValue<AppThemeMode>,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}

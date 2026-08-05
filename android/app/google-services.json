@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "204827966295",
+    "project_id": "pinpaiss-app",
+    "storage_bucket": "pinpaiss-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:204827966295:android:b9c05cf5ebb9a8fc76dc12",
+        "android_client_info": {
+          "package_name": "com.pinpaiss.store_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAleYZWa-YIZP5YCr9-ca64kpBa4zD2bNc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

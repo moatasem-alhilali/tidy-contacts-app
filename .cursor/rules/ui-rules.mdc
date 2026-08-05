@@ -1,0 +1,177 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+
+## �� **UI Development Rules**
+
+### **1. File Structure**
+
+- Create `screens/` folder for main screens
+- Create `widgets/` folder for reusable components
+- Create `widgets.dart` export file
+- Split complex screens into separate widget files
+
+### **2. Import Order**
+
+- Flutter imports first
+- Third-party packages second
+- Design system third
+- Core imports fourth
+- Feature imports last
+
+### **3. Widget Structure**
+
+- Use `const` constructors
+- Required parameters first, optional second
+- Use `super.key` for key parameter
+- Single responsibility per widget
+
+### **4. Code Formatting**
+
+- Single line for simple parameters
+- Multi-line for complex widgets
+- Use design system extensions (16.w, 16.h, 16.r, 16.sp)
+- Proper indentation
+
+### **5. State Management**
+
+- Use `ConsumerWidget` for Riverpod
+- Handle data, loading, and error states
+- Create separate loading and error widgets
+
+### **6. Navigation**
+
+- Use `context.router.pushNamed()` for navigation
+- Pass parameters when needed
+
+### **7. Colors & Text**
+
+- Always use `context.colors` and `context.textStyles`
+- Use `TextWidget` for Arabic RTL support
+
+### **8. Screen Limits**
+
+- Main screen maximum 300 lines
+- Break down into smaller widgets
+- Each widget handles one section
+
+### **9. Error Handling**
+
+- use showSuccessSnackbar,showErrorSnackbar,showWarningSnackbar methods for user feedback from design-system-package
+- Handle errors gracefully
+- Show appropriate messages
+
+### **10. small form action in page**
+
+- Use sheet instead of dialog
+- use one of exits widgets sheet from this path lib/design-system-package/src/widgets/bottom_sheets
+
+### **10. Responsive Design**
+
+- Use consistent spacing (lib/design-system-package/src/themes/spaces/mobile_spaces.dart)
+- Make components responsive
+- Follow design system guidelines
+
+### **10. Button Action Widget**
+
+- Use exits button widget (lib/design-system-package/src/widgets/buttons/button_progress_state_widget.dart)
+
+
+## 🔧 **Provider Creation Rules**
+
+### **11. Provider Structure**
+
+- Create separate providers for different functionalities
+- One provider per specific responsibility
+- Use descriptive names: `{feature}_{action}_provider.dart`
+- Follow pattern: `{feature}_list_provider.dart`, `{feature}_actions_provider.dart`, etc.
+
+### **12. Provider State Classes**
+
+- Create dedicated state class for each provider
+- Include: `isLoading`, `isSuccess`, `failure`, `requestState`
+- Add specific data fields for the provider's purpose
+- Implement `copyWith` method with all fields
+- Override `==` operator and `hashCode`
+
+### **13. Provider Class Structure**
+
+- Use `@riverpod` annotation with `_$ClassName` extends
+- Implement `build()` method returning initial state
+- Group related methods together
+- Use consistent method naming patterns
+
+### **14. Method Organization**
+
+- **Data Loading**: `load{Entity}()`, `loadMore()`, `refresh()`
+- **Actions**: `{action}{Entity}()`, `{action}All()`, `{action}ById()`
+- **Utilities**: `get{Filtered}()`, `is{Condition}()`, `has{Property}()`
+- **State Management**: `resetState()`, `clearFailure()`
+
+### **15. Error Handling**
+
+- Always wrap service calls in try-catch
+- Provide Arabic error messages
+- Use consistent error message format
+- Update state with error information
+- Return `Either<String, T>` for all async operations
+
+### **16. State Updates**
+
+- Always update state with loading indicators
+- Clear previous errors when starting new operations
+- Update success state with results
+- Handle both success and failure cases
+
+### **17. Service Integration**
+
+- Use `ref.read(serviceProvider)` to access services
+- Pass required parameters to service methods
+- Handle service response types correctly
+- Use proper type casting for `Either` results
+
+### **18. Provider Naming**
+
+- Use descriptive class names: `{Feature}{Action}Controller`
+- Avoid generic names like `Provider` or `Manager`
+- Be specific about the provider's purpose
+- Use consistent naming across similar providers
+
+### **19. Code Generation**
+
+- Always include `part '{filename}.g.dart';`
+- Run `dart run build_runner build` after creating providers
+- Handle generated code properly
+- Don't modify `.g.dart` files manually
+
+### **20. Import Organization**
+
+- Import order: Flutter → Third-party → Core → Feature → Models
+- Use aliases for conflicting names: `import '...' as models;`
+- Group related imports together
+- Remove unused imports
+
+### **21. Documentation**
+
+- Add comprehensive method documentation
+- Include parameter descriptions
+- Document return types and possible errors
+- Use Arabic comments for user-facing messages
+
+### **22. Provider Dependencies**
+
+- Avoid circular dependencies between providers
+- Use `ref.read()` for one-time access
+- Use `ref.watch()` for reactive updates
+- Handle provider lifecycle properly
+
+### **23. Testing Considerations**
+
+- Make providers easily testable
+- Separate business logic from UI logic
+- Use dependency injection for services
+- Provide clear state transitions
+
+Screen use AppScaffold From also AppBarWidget from [design-system-package]
