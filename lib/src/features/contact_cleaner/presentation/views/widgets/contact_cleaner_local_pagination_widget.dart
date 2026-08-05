@@ -1,11 +1,15 @@
-// ignore_for_file: omit_local_variable_types
+// Local (in-memory) pagination list.
+// Self-contained: a ListView with a header, incremental "load more" via
+// AdaptiveButton, and an adaptive empty state — no design-system dependency.
 
+import 'package:adaptive_platform_ui/adaptive_platform_ui.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:hive_manager/design-system-package/siolla_design_system.dart';
+import 'package:hive_manager/generated/codegen_loader.g.dart';
+import 'package:hive_manager/src/features/contact_cleaner/presentation/views/widgets/contact_cleaner_common_widgets.dart';
 
-class ContactCleanerLocalPaginationWidget<T> extends ConsumerStatefulWidget {
+class ContactCleanerLocalPaginationWidget<T> extends StatefulWidget {
   const ContactCleanerLocalPaginationWidget({
     required this.items,
     required this.headerBuilder,
@@ -27,12 +31,12 @@ class ContactCleanerLocalPaginationWidget<T> extends ConsumerStatefulWidget {
   final Widget? separatorWidget;
 
   @override
-  ConsumerState<ContactCleanerLocalPaginationWidget<T>> createState() =>
+  State<ContactCleanerLocalPaginationWidget<T>> createState() =>
       _ContactCleanerLocalPaginationWidgetState<T>();
 }
 
 class _ContactCleanerLocalPaginationWidgetState<T>
-    extends ConsumerState<ContactCleanerLocalPaginationWidget<T>> {
+    extends State<ContactCleanerLocalPaginationWidget<T>> {
   int _currentPage = 1;
 
   @override
@@ -45,61 +49,42 @@ class _ContactCleanerLocalPaginationWidgetState<T>
     }
   }
 
-  int get _totalPages {
-    if (widget.items.isEmpty) {
-      return 1;
-    }
-    return (widget.items.length / widget.pageSize).ceil();
-  }
+  int get _visibleCount =>
+      (_currentPage * widget.pageSize).clamp(0, widget.items.length);
 
-  List<T> get _visibleItems {
-    final visibleCount = (_currentPage * widget.pageSize).clamp(
-      0,
-      widget.items.length,
-    );
-    return widget.items.take(visibleCount).toList();
-  }
-
-  Future<void> _loadMore() async {
-    if (_currentPage >= _totalPages) {
-      return;
-    }
-    setState(() {
-      _currentPage += 1;
-    });
-  }
+  bool get _hasMore => _visibleCount < widget.items.length;
 
   @override
   Widget build(BuildContext context) {
-    final visibleItems = _visibleItems;
-    final pagination = ApiPaginatedBaseResponse<T>(
-      data: visibleItems,
-      currentPage: _currentPage,
-      totalPages: _totalPages,
-      totalCount: widget.items.length,
-    );
+    final List<T> visible = widget.items.take(_visibleCount).toList();
+    final Widget separator =
+        widget.separatorWidget ?? const SizedBox(height: kGapSm);
 
-    return ListViewSeparatedScrollPaginationWithHeaderScroll<T>(
-      onLoading: _loadMore,
-      pagination: pagination,
-      builder: widget.itemBuilder,
-      header: widget.headerBuilder(
-        context,
-        visibleItems.length,
-        widget.items.length,
-      ),
-      isError: false,
-      isLoading: false,
-      emptyWidget: widget.emptyWidget,
-      errorWidget: widget.emptyWidget,
-      loadingWidget: Center(
-        child: Padding(
-          padding: EdgeInsets.symmetric(vertical: context.insets.xl.h),
-          child: CircularProgressIndicator(color: context.colors.primary),
-        ),
-      ),
-      separatorWidget:
-          widget.separatorWidget ?? SizedBox(height: context.insets.sm.h),
+    return ListView(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.only(bottom: kGapXl),
+      children: [
+        widget.headerBuilder(context, visible.length, widget.items.length),
+        const SizedBox(height: kGapMd),
+        if (widget.items.isEmpty)
+          widget.emptyWidget
+        else ...[
+          for (int i = 0; i < visible.length; i++) ...[
+            if (i > 0) separator,
+            widget.itemBuilder(visible[i]),
+          ],
+          if (_hasMore) ...[
+            const SizedBox(height: kGapLg),
+            Center(
+              child: AdaptiveButton(
+                onPressed: () => setState(() => _currentPage += 1),
+                style: AdaptiveButtonStyle.tinted,
+                label: LocaleKeys.contact_cleaner_load_more.tr(),
+              ),
+            ),
+          ],
+        ],
+      ],
     );
   }
 }

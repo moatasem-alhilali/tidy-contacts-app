@@ -6,9 +6,9 @@ import 'package:adaptive_platform_ui/adaptive_platform_ui.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:hive_manager/design-system-package/siolla_design_system.dart';
 import 'package:hive_manager/generated/codegen_loader.g.dart';
 import 'package:hive_manager/src/features/contact_cleaner/data/models/contact_cleaner_models.dart';
+import 'package:hive_manager/src/features/contact_cleaner/presentation/views/widgets/contact_cleaner_common_widgets.dart';
 import 'package:hive_manager/src/features/contact_cleaner/presentation/views/widgets/contact_cleaner_rule_label_localizer.dart';
 
 class ContactCleanerRuleFormSheet extends StatefulWidget {
@@ -104,6 +104,9 @@ class _ContactCleanerRuleFormSheetState
 
   @override
   Widget build(BuildContext context) {
+    final ColorScheme cs = Theme.of(context).colorScheme;
+    final TextTheme tt = Theme.of(context).textTheme;
+
     return SafeArea(
       top: false,
       child: Form(
@@ -113,19 +116,14 @@ class _ContactCleanerRuleFormSheetState
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: EdgeInsets.fromLTRB(
-                context.insets.md.w,
-                context.insets.md.h,
-                context.insets.md.w,
-                0,
-              ),
+              padding: const EdgeInsets.fromLTRB(kGapMd, kGapMd, kGapMd, 0),
               child: Text(
                 _isEditing
                     ? LocaleKeys.contact_cleaner_edit_rule_title.tr()
                     : LocaleKeys.contact_cleaner_add_rule_title.tr(),
-                style: context.textStyles.titleMedium.copyWith(
-                  color: context.colors.onPrimaryContainer,
-                  fontWeight: FontWeight.w600,
+                style: tt.titleMedium?.copyWith(
+                  color: cs.onSurface,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
             ),
@@ -197,7 +195,7 @@ class _ContactCleanerRuleFormSheetState
               ],
             ),
             Padding(
-              padding: EdgeInsets.all(context.insets.md.w),
+              padding: const EdgeInsets.all(kGapMd),
               child: SizedBox(
                 width: double.infinity,
                 child: AdaptiveButton(

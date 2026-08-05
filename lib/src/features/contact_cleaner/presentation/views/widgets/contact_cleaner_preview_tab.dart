@@ -1,10 +1,11 @@
-// ignore_for_file: lines_longer_than_80_chars, omit_local_variable_types
+// Preview tab: the planned changes before applying.
+// Metrics as stat cards; each planned change as an AdaptiveExpansionTile.
 
 import 'dart:ui' as ui;
 
+import 'package:adaptive_platform_ui/adaptive_platform_ui.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:hive_manager/design-system-package/siolla_design_system.dart';
 import 'package:hive_manager/generated/codegen_loader.g.dart';
 import 'package:hive_manager/src/features/contact_cleaner/data/models/contact_cleaner_models.dart';
 import 'package:hive_manager/src/features/contact_cleaner/presentation/views/widgets/contact_cleaner_common_widgets.dart';
@@ -19,13 +20,15 @@ class ContactCleanerPreviewTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final CleanupPlan? currentPlan = plan;
     if (currentPlan == null || !currentPlan.hasChanges) {
-      return EmptyWidget(
+      return ContactCleanerEmptyState(
+        icon: Icons.task_alt_outlined,
         title: LocaleKeys.contact_cleaner_no_changes_title.tr(),
-        subTitle: LocaleKeys.contact_cleaner_no_changes_subtitle.tr(),
-        padding: EdgeInsets.symmetric(vertical: context.height * 0.16),
+        subtitle: LocaleKeys.contact_cleaner_no_changes_subtitle.tr(),
       );
     }
 
+    final ColorScheme cs = Theme.of(context).colorScheme;
+    final TextTheme tt = Theme.of(context).textTheme;
     final List<ContactCleanupPlanEntry> changedContacts = currentPlan
         .contactPlans
         .where((ContactCleanupPlanEntry planEntry) => planEntry.hasChanges)
@@ -42,32 +45,29 @@ class ContactCleanerPreviewTab extends StatelessWidget {
         return Column(
           children: [
             _PreviewMetrics(plan: currentPlan),
-            SizedBox(height: context.insets.md.h),
+            const SizedBox(height: kGapMd),
             ContactCleanerPanel(
-              child: TextWidget(
+              child: Text(
                 LocaleKeys.contact_cleaner_preview_visible.tr(
                   namedArgs: {
                     'visible': '$visibleCount',
                     'total': '$totalCount',
                   },
                 ),
-                style: context.textStyles.bodyMedium.copyWith(
-                  color: context.colors.onSecondary,
-                ),
+                style: tt.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
               ),
             ),
           ],
         );
       },
-      emptyWidget: EmptyWidget(
+      emptyWidget: ContactCleanerEmptyState(
+        icon: Icons.task_alt_outlined,
         title: LocaleKeys.contact_cleaner_no_changes_title.tr(),
-        subTitle: LocaleKeys.contact_cleaner_no_changes_subtitle.tr(),
-        padding: EdgeInsets.symmetric(vertical: context.height * 0.16),
+        subtitle: LocaleKeys.contact_cleaner_no_changes_subtitle.tr(),
       ),
       itemBuilder: (_PreviewEntry entry) => entry.mergePlan != null
           ? _MergePlanCard(plan: entry.mergePlan!)
           : _ContactPlanCard(planEntry: entry.contactPlan!),
-      separatorWidget: SizedBox(height: context.insets.sm.h),
     );
   }
 }
@@ -91,40 +91,44 @@ class _PreviewMetrics extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final double width =
-        (context.width - (context.insets.mn.w * 2) - context.insets.sm.w) / 2;
-
-    return Wrap(
-      spacing: context.insets.sm.w,
-      runSpacing: context.insets.sm.h,
-      children: [
-        ContactCleanerStatTile(
-          title: LocaleKeys.contact_cleaner_metric_contacts_update.tr(),
-          value: '${plan.contactsToUpdate}',
-          width: width,
-          backgroundColor: context.colors.brand10Color,
-          valueColor: context.colors.primary,
-        ),
-        ContactCleanerStatTile(
-          title: LocaleKeys.contact_cleaner_metric_numbers_normalized.tr(),
-          value: '${plan.numbersNormalized}',
-          width: width,
-          backgroundColor: context.colors.primaryFixedLight,
-          valueColor: context.colors.primaryFixed,
-        ),
-        ContactCleanerStatTile(
-          title: LocaleKeys.contact_cleaner_metric_numbers_removed.tr(),
-          value: '${plan.numbersRemoved}',
-          width: width,
-          backgroundColor: context.colors.errorLight,
-          valueColor: context.colors.error,
-        ),
-        ContactCleanerStatTile(
-          title: LocaleKeys.contact_cleaner_metric_contacts_merge_delete.tr(),
-          value: '${plan.contactsToDelete}',
-          width: width,
-        ),
-      ],
+    final ColorScheme cs = Theme.of(context).colorScheme;
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        final double width = (constraints.maxWidth - kGapSm) / 2;
+        return Wrap(
+          spacing: kGapSm,
+          runSpacing: kGapSm,
+          children: [
+            ContactCleanerStatTile(
+              title: LocaleKeys.contact_cleaner_metric_contacts_update.tr(),
+              value: '${plan.contactsToUpdate}',
+              width: width,
+              backgroundColor: cs.primaryContainer,
+              valueColor: cs.onPrimaryContainer,
+            ),
+            ContactCleanerStatTile(
+              title: LocaleKeys.contact_cleaner_metric_numbers_normalized.tr(),
+              value: '${plan.numbersNormalized}',
+              width: width,
+              backgroundColor: cs.tertiaryContainer,
+              valueColor: cs.onTertiaryContainer,
+            ),
+            ContactCleanerStatTile(
+              title: LocaleKeys.contact_cleaner_metric_numbers_removed.tr(),
+              value: '${plan.numbersRemoved}',
+              width: width,
+              backgroundColor: cs.errorContainer,
+              valueColor: cs.onErrorContainer,
+            ),
+            ContactCleanerStatTile(
+              title: LocaleKeys.contact_cleaner_metric_contacts_merge_delete
+                  .tr(),
+              value: '${plan.contactsToDelete}',
+              width: width,
+            ),
+          ],
+        );
+      },
     );
   }
 }
@@ -136,49 +140,39 @@ class _MergePlanCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ColorScheme cs = Theme.of(context).colorScheme;
+    final TextTheme tt = Theme.of(context).textTheme;
+
     return ContactCleanerPanel(
-      margin: EdgeInsets.only(bottom: context.insets.sm.h),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      padding: const EdgeInsets.symmetric(horizontal: kGapSm),
+      child: AdaptiveExpansionTile(
+        leading: Icon(Icons.merge_type, color: cs.primary),
+        title: Text(
+          plan.primaryContactName,
+          style: tt.titleMedium?.copyWith(
+            color: cs.onSurface,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        subtitle: Text(LocaleKeys.contact_cleaner_merge_operation.tr()),
+        childrenPadding: const EdgeInsets.only(bottom: kGapMd),
         children: [
-          ContactCleanerTag(
-            label: LocaleKeys.contact_cleaner_merge_operation.tr(),
-            backgroundColor: context.colors.brand10Color,
-            textColor: context.colors.primary,
-          ),
-          SizedBox(height: context.insets.md.h),
-          TextWidget(
-            plan.primaryContactName,
-            style: context.textStyles.titleMedium.copyWith(
-              color: context.colors.onPrimaryContainer,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          SizedBox(height: context.insets.sm.h),
-          TextWidget(
-            LocaleKeys.contact_cleaner_merge_subtitle.tr(),
-            style: context.textStyles.bodyMedium.copyWith(
-              color: context.colors.onSecondary,
-            ),
-          ),
-          SizedBox(height: context.insets.md.h),
-          ...plan.contactNames.map(
-            (String contactName) => Padding(
-              padding: EdgeInsets.only(bottom: context.insets.sm.h),
+          for (final String contactName in plan.contactNames)
+            Padding(
+              padding: const EdgeInsets.only(bottom: kGapSm),
               child: ContactCleanerLabeledValue(
                 label: contactName == plan.primaryContactName
                     ? LocaleKeys.contact_cleaner_merge_primary_contact.tr()
                     : LocaleKeys.contact_cleaner_merge_secondary_contact.tr(),
                 value: contactName,
                 backgroundColor: contactName == plan.primaryContactName
-                    ? context.colors.primaryFixedLight
-                    : context.colors.secondary,
+                    ? cs.tertiaryContainer
+                    : cs.surfaceContainerHighest,
                 valueColor: contactName == plan.primaryContactName
-                    ? context.colors.primaryFixed
-                    : context.colors.onPrimaryContainer,
+                    ? cs.onTertiaryContainer
+                    : cs.onSurface,
               ),
             ),
-          ),
         ],
       ),
     );
@@ -192,6 +186,8 @@ class _ContactPlanCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ColorScheme cs = Theme.of(context).colorScheme;
+    final TextTheme tt = Theme.of(context).textTheme;
     final List<PlannedPhoneChange> changedPhones = planEntry.phoneChanges
         .where(
           (PlannedPhoneChange change) =>
@@ -200,34 +196,24 @@ class _ContactPlanCard extends StatelessWidget {
         .toList();
 
     return ContactCleanerPanel(
-      margin: EdgeInsets.only(bottom: context.insets.sm.h),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      padding: const EdgeInsets.symmetric(horizontal: kGapSm),
+      child: AdaptiveExpansionTile(
+        leading: Icon(Icons.edit_outlined, color: cs.onSurfaceVariant),
+        title: Text(
+          planEntry.contactName,
+          style: tt.titleMedium?.copyWith(
+            color: cs.onSurface,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        subtitle: Text(LocaleKeys.contact_cleaner_update_contact.tr()),
+        childrenPadding: const EdgeInsets.only(bottom: kGapMd),
         children: [
-          ContactCleanerTag(
-            label: LocaleKeys.contact_cleaner_update_contact.tr(),
-            backgroundColor: context.colors.secondary,
-            textColor: context.colors.onSecondary,
-          ),
-          SizedBox(height: context.insets.md.h),
-          TextWidget(
-            planEntry.contactName,
-            style: context.textStyles.titleMedium.copyWith(
-              color: context.colors.onPrimaryContainer,
-              fontWeight: FontWeight.w600,
+          for (final PlannedPhoneChange change in changedPhones)
+            Padding(
+              padding: const EdgeInsets.only(bottom: kGapSm),
+              child: _PhoneChangeCard(change: change),
             ),
-          ),
-          SizedBox(height: context.insets.md.h),
-          ...changedPhones.asMap().entries.map(
-            (MapEntry<int, PlannedPhoneChange> entry) => Padding(
-              padding: EdgeInsets.only(
-                bottom: entry.key == changedPhones.length - 1
-                    ? 0
-                    : context.insets.md.h,
-              ),
-              child: _PhoneChangeCard(change: entry.value),
-            ),
-          ),
         ],
       ),
     );
@@ -241,17 +227,16 @@ class _PhoneChangeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ColorScheme cs = Theme.of(context).colorScheme;
     final bool isRemoval = !change.keep;
 
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: isRemoval
-            ? context.colors.errorLight
-            : context.colors.primaryFixedLight,
-        borderRadius: BorderRadius.all(context.corners.rm),
+        color: isRemoval ? cs.errorContainer : cs.tertiaryContainer,
+        borderRadius: kRadiusTile,
       ),
       child: Padding(
-        padding: EdgeInsets.all(context.insets.sm.w),
+        padding: const EdgeInsets.all(kGapMd),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -259,26 +244,24 @@ class _PhoneChangeCard extends StatelessWidget {
               label: isRemoval
                   ? LocaleKeys.contact_cleaner_number_will_be_removed.tr()
                   : LocaleKeys.contact_cleaner_number_will_be_replaced.tr(),
-              backgroundColor: context.colors.surface,
-              textColor: isRemoval
-                  ? context.colors.error
-                  : context.colors.primaryFixed,
+              backgroundColor: cs.surface,
+              textColor: isRemoval ? cs.error : cs.onTertiaryContainer,
             ),
-            SizedBox(height: context.insets.sm.h),
+            const SizedBox(height: kGapSm),
             ContactCleanerLabeledValue(
               label: LocaleKeys.contact_cleaner_current_number.tr(),
               value: change.originalNumber,
               valueDirection: ui.TextDirection.ltr,
-              backgroundColor: context.colors.surface,
+              backgroundColor: cs.surface,
             ),
             if (!isRemoval) ...[
-              SizedBox(height: context.insets.sm.h),
+              const SizedBox(height: kGapSm),
               ContactCleanerLabeledValue(
                 label: LocaleKeys.contact_cleaner_replacement_number.tr(),
                 value: change.replacementNumber ?? '',
                 valueDirection: ui.TextDirection.ltr,
-                backgroundColor: context.colors.surface,
-                valueColor: context.colors.primary,
+                backgroundColor: cs.surface,
+                valueColor: cs.primary,
               ),
             ],
           ],

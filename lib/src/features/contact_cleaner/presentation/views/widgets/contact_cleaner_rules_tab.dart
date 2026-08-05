@@ -7,7 +7,6 @@
 import 'package:adaptive_platform_ui/adaptive_platform_ui.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:hive_manager/design-system-package/siolla_design_system.dart';
 import 'package:hive_manager/generated/codegen_loader.g.dart';
 import 'package:hive_manager/src/features/contact_cleaner/data/models/contact_cleaner_models.dart';
 import 'package:hive_manager/src/features/contact_cleaner/presentation/views/widgets/contact_cleaner_common_widgets.dart';
@@ -42,29 +41,30 @@ class ContactCleanerRulesTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ColorScheme cs = Theme.of(context).colorScheme;
+    final TextTheme tt = Theme.of(context).textTheme;
+
     return ListView(
       physics: const BouncingScrollPhysics(),
-      padding: EdgeInsets.only(bottom: context.insets.xl.h),
+      padding: const EdgeInsets.only(bottom: kGapXl),
       children: [
         ContactCleanerPanel(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              TextWidget(
+              Text(
                 LocaleKeys.contact_cleaner_rules_title.tr(),
-                style: context.textStyles.titleMedium.copyWith(
-                  color: context.colors.onPrimaryContainer,
+                style: tt.titleMedium?.copyWith(
+                  color: cs.onSurface,
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              SizedBox(height: context.insets.sm.h),
-              TextWidget(
+              const SizedBox(height: kGapSm),
+              Text(
                 LocaleKeys.contact_cleaner_rules_subtitle.tr(),
-                style: context.textStyles.bodyMedium.copyWith(
-                  color: context.colors.onSecondary,
-                ),
+                style: tt.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
               ),
-              SizedBox(height: context.insets.md.h),
+              const SizedBox(height: kGapMd),
               AdaptiveListTile(
                 hideBottomDivider: true,
                 title: Text(
@@ -91,14 +91,12 @@ class ContactCleanerRulesTab extends StatelessWidget {
                   onChanged: onWithinContactChanged,
                 ),
               ),
-              SizedBox(height: context.insets.md.h),
-              TextWidget(
+              const SizedBox(height: kGapMd),
+              Text(
                 LocaleKeys.contact_cleaner_cross_contact_action_label.tr(),
-                style: context.textStyles.labelLarge.copyWith(
-                  color: context.colors.onSecondary,
-                ),
+                style: tt.labelLarge?.copyWith(color: cs.onSurfaceVariant),
               ),
-              SizedBox(height: context.insets.sm.h),
+              const SizedBox(height: kGapSm),
               AdaptiveSegmentedControl(
                 labels: _crossActions
                     .map((CrossContactDuplicateAction a) => _actionLabel(a))
@@ -107,7 +105,7 @@ class ContactCleanerRulesTab extends StatelessWidget {
                 onValueChanged: (int index) =>
                     onCrossContactChanged(_crossActions[index]),
               ),
-              SizedBox(height: context.insets.md.h),
+              const SizedBox(height: kGapMd),
               SizedBox(
                 width: double.infinity,
                 child: AdaptiveButton(
@@ -119,7 +117,7 @@ class ContactCleanerRulesTab extends StatelessWidget {
             ],
           ),
         ),
-        SizedBox(height: context.insets.md.h),
+        const SizedBox(height: kGapMd),
         SizedBox(
           width: double.infinity,
           child: AdaptiveButton.child(
@@ -129,18 +127,18 @@ class ContactCleanerRulesTab extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 const Icon(Icons.add, size: 18),
-                SizedBox(width: context.insets.sm.w),
+                const SizedBox(width: kGapSm),
                 Text(LocaleKeys.contact_cleaner_add_rule.tr()),
               ],
             ),
           ),
         ),
-        SizedBox(height: context.insets.md.h),
+        const SizedBox(height: kGapMd),
         if (rules.isEmpty)
-          EmptyWidget(
+          ContactCleanerEmptyState(
+            icon: Icons.rule_folder_outlined,
             title: LocaleKeys.contact_cleaner_no_rules_title.tr(),
-            subTitle: LocaleKeys.contact_cleaner_no_rules_subtitle.tr(),
-            padding: EdgeInsets.symmetric(vertical: context.height * 0.12),
+            subtitle: LocaleKeys.contact_cleaner_no_rules_subtitle.tr(),
           )
         else
           ...rules.map(
@@ -179,14 +177,17 @@ class _RuleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ColorScheme cs = Theme.of(context).colorScheme;
+    final TextTheme tt = Theme.of(context).textTheme;
+
     return ContactCleanerPanel(
-      margin: EdgeInsets.only(bottom: context.insets.sm.h),
-      padding: EdgeInsets.symmetric(horizontal: context.insets.sm.w),
+      margin: const EdgeInsets.only(bottom: kGapSm),
+      padding: const EdgeInsets.symmetric(horizontal: kGapSm),
       child: AdaptiveExpansionTile(
         title: Text(
           localizedContactCleanerRuleLabel(rule),
-          style: context.textStyles.titleMedium.copyWith(
-            color: context.colors.onPrimaryContainer,
+          style: tt.titleMedium?.copyWith(
+            color: cs.onSurface,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -216,17 +217,13 @@ class _RuleCard extends StatelessWidget {
               onDeletePressed();
             }
           },
-          child: Icon(Icons.more_horiz, color: context.colors.onSecondary),
+          child: Icon(Icons.more_horiz, color: cs.onSurfaceVariant),
         ),
-        childrenPadding: EdgeInsets.only(
-          left: context.insets.sm.w,
-          right: context.insets.sm.w,
-          bottom: context.insets.md.h,
-        ),
+        childrenPadding: const EdgeInsets.only(bottom: kGapMd),
         children: [
           Wrap(
-            spacing: context.insets.sm.w,
-            runSpacing: context.insets.sm.h,
+            spacing: kGapSm,
+            runSpacing: kGapSm,
             children: [
               ContactCleanerTag(
                 label: LocaleKeys.contact_cleaner_rule_length.tr(
@@ -240,15 +237,15 @@ class _RuleCard extends StatelessWidget {
                       )
                     : LocaleKeys.contact_cleaner_rule_no_prefix_removal.tr(),
                 backgroundColor: rule.removeTrunkPrefix
-                    ? context.colors.brand10Color
-                    : context.colors.secondary,
+                    ? cs.primaryContainer
+                    : cs.surfaceContainerHighest,
                 textColor: rule.removeTrunkPrefix
-                    ? context.colors.primary
-                    : context.colors.onPrimaryContainer,
+                    ? cs.onPrimaryContainer
+                    : cs.onSurface,
               ),
             ],
           ),
-          SizedBox(height: context.insets.sm.h),
+          const SizedBox(height: kGapSm),
           ContactCleanerLabeledValue(
             label: LocaleKeys.contact_cleaner_rule_matching_prefixes.tr(),
             value: rule.prefixes.isEmpty

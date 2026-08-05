@@ -1,10 +1,10 @@
-// ignore_for_file: lines_longer_than_80_chars, omit_local_variable_types
+// Overview tab: analysis stats + per-number issues.
+// Built on the adaptive kit (AdaptiveCard-based) + Flutter ThemeData.
 
 import 'dart:ui' as ui;
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:hive_manager/design-system-package/siolla_design_system.dart';
 import 'package:hive_manager/generated/codegen_loader.g.dart';
 import 'package:hive_manager/src/features/contact_cleaner/data/models/contact_cleaner_models.dart';
 import 'package:hive_manager/src/features/contact_cleaner/presentation/views/widgets/contact_cleaner_common_widgets.dart';
@@ -19,14 +19,16 @@ class ContactCleanerOverviewTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final ContactAnalysisResult? currentAnalysis = analysis;
     if (currentAnalysis == null) {
-      return EmptyWidget(
+      return ContactCleanerEmptyState(
+        icon: Icons.analytics_outlined,
         title: LocaleKeys.contact_cleaner_no_result_title.tr(),
-        subTitle: LocaleKeys.contact_cleaner_no_result_subtitle.tr(),
-        padding: EdgeInsets.symmetric(vertical: context.height * 0.16),
+        subtitle: LocaleKeys.contact_cleaner_no_result_subtitle.tr(),
       );
     }
 
     final List<AnalyzedPhoneNumber> issues = currentAnalysis.issuePhones;
+    final ColorScheme cs = Theme.of(context).colorScheme;
+    final TextTheme tt = Theme.of(context).textTheme;
 
     return ContactCleanerLocalPaginationWidget<AnalyzedPhoneNumber>(
       items: issues,
@@ -35,20 +37,20 @@ class ContactCleanerOverviewTab extends StatelessWidget {
         return Column(
           children: [
             _StatsGrid(stats: currentAnalysis.stats),
-            SizedBox(height: context.insets.md.h),
+            const SizedBox(height: kGapMd),
             ContactCleanerPanel(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  TextWidget(
+                  Text(
                     LocaleKeys.contact_cleaner_issues_title.tr(),
-                    style: context.textStyles.titleMedium.copyWith(
-                      color: context.colors.onPrimaryContainer,
+                    style: tt.titleMedium?.copyWith(
+                      color: cs.onSurface,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  SizedBox(height: context.insets.sm.h),
-                  TextWidget(
+                  const SizedBox(height: kGapSm),
+                  Text(
                     issues.isEmpty
                         ? LocaleKeys.contact_cleaner_no_issues_message.tr()
                         : LocaleKeys.contact_cleaner_issues_visible.tr(
@@ -57,14 +59,12 @@ class ContactCleanerOverviewTab extends StatelessWidget {
                               'total': '$totalCount',
                             },
                           ),
-                    style: context.textStyles.bodyMedium.copyWith(
-                      color: context.colors.onSecondary,
-                    ),
+                    style: tt.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
                   ),
-                  SizedBox(height: context.insets.md.h),
+                  const SizedBox(height: kGapMd),
                   Wrap(
-                    spacing: context.insets.sm.w,
-                    runSpacing: context.insets.sm.h,
+                    spacing: kGapSm,
+                    runSpacing: kGapSm,
                     children: [
                       ContactCleanerTag(
                         label: LocaleKeys.contact_cleaner_formatting_count.tr(
@@ -73,7 +73,6 @@ class ContactCleanerOverviewTab extends StatelessWidget {
                                 '${currentAnalysis.stats.formattingIssues}',
                           },
                         ),
-                        backgroundColor: context.colors.secondary,
                       ),
                       ContactCleanerTag(
                         label: LocaleKeys.contact_cleaner_missing_country_count
@@ -83,8 +82,8 @@ class ContactCleanerOverviewTab extends StatelessWidget {
                                     '${currentAnalysis.stats.missingCountryCode}',
                               },
                             ),
-                        backgroundColor: context.colors.brand10Color,
-                        textColor: context.colors.primary,
+                        backgroundColor: cs.primaryContainer,
+                        textColor: cs.onPrimaryContainer,
                       ),
                       ContactCleanerTag(
                         label: LocaleKeys.contact_cleaner_unmatched_count.tr(
@@ -93,8 +92,8 @@ class ContactCleanerOverviewTab extends StatelessWidget {
                                 '${currentAnalysis.stats.unmatchedLocalNumbers}',
                           },
                         ),
-                        backgroundColor: context.colors.brand10Color,
-                        textColor: context.colors.primary,
+                        backgroundColor: cs.primaryContainer,
+                        textColor: cs.onPrimaryContainer,
                       ),
                       ContactCleanerTag(
                         label: LocaleKeys.contact_cleaner_invalid_count.tr(
@@ -102,8 +101,8 @@ class ContactCleanerOverviewTab extends StatelessWidget {
                             'count': '${currentAnalysis.stats.invalidNumbers}',
                           },
                         ),
-                        backgroundColor: context.colors.errorLight,
-                        textColor: context.colors.error,
+                        backgroundColor: cs.errorContainer,
+                        textColor: cs.onErrorContainer,
                       ),
                     ],
                   ),
@@ -113,13 +112,12 @@ class ContactCleanerOverviewTab extends StatelessWidget {
           ],
         );
       },
-      emptyWidget: EmptyWidget(
+      emptyWidget: ContactCleanerEmptyState(
+        icon: Icons.verified_outlined,
         title: LocaleKeys.contact_cleaner_no_formatting_title.tr(),
-        subTitle: LocaleKeys.contact_cleaner_no_formatting_subtitle.tr(),
-        padding: EdgeInsets.symmetric(vertical: context.height * 0.12),
+        subtitle: LocaleKeys.contact_cleaner_no_formatting_subtitle.tr(),
       ),
       itemBuilder: (AnalyzedPhoneNumber phone) => _IssueCard(phone: phone),
-      separatorWidget: SizedBox(height: context.insets.sm.h),
     );
   }
 }
@@ -131,54 +129,58 @@ class _StatsGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final double width =
-        (context.width - (context.insets.mn.w * 2) - context.insets.sm.w) / 2;
+    final ColorScheme cs = Theme.of(context).colorScheme;
 
-    return Wrap(
-      spacing: context.insets.sm.w,
-      runSpacing: context.insets.sm.h,
-      children: [
-        ContactCleanerStatTile(
-          title: LocaleKeys.contact_cleaner_total_contacts.tr(),
-          value: '${stats.totalContacts}',
-          width: width,
-          backgroundColor: context.colors.brand10Color,
-          valueColor: context.colors.primary,
-        ),
-        ContactCleanerStatTile(
-          title: LocaleKeys.contact_cleaner_total_numbers.tr(),
-          value: '${stats.totalNumbers}',
-          width: width,
-        ),
-        ContactCleanerStatTile(
-          title: LocaleKeys.contact_cleaner_missing_country.tr(),
-          value: '${stats.missingCountryCode}',
-          width: width,
-          backgroundColor: context.colors.brand10Color,
-          valueColor: context.colors.primary,
-        ),
-        ContactCleanerStatTile(
-          title: LocaleKeys.contact_cleaner_duplicates.tr(),
-          value: '${stats.duplicateEntries}',
-          width: width,
-          backgroundColor: context.colors.errorLight,
-          valueColor: context.colors.error,
-        ),
-        ContactCleanerStatTile(
-          title: LocaleKeys.contact_cleaner_corrected.tr(),
-          value: '${stats.correctedNumbers}',
-          width: width,
-          backgroundColor: context.colors.primaryFixedLight,
-          valueColor: context.colors.primaryFixed,
-        ),
-        ContactCleanerStatTile(
-          title: LocaleKeys.contact_cleaner_invalid.tr(),
-          value: '${stats.invalidNumbers}',
-          width: width,
-          backgroundColor: context.colors.errorLight,
-          valueColor: context.colors.error,
-        ),
-      ],
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        final double width = (constraints.maxWidth - kGapSm) / 2;
+        return Wrap(
+          spacing: kGapSm,
+          runSpacing: kGapSm,
+          children: [
+            ContactCleanerStatTile(
+              title: LocaleKeys.contact_cleaner_total_contacts.tr(),
+              value: '${stats.totalContacts}',
+              width: width,
+              backgroundColor: cs.primaryContainer,
+              valueColor: cs.onPrimaryContainer,
+            ),
+            ContactCleanerStatTile(
+              title: LocaleKeys.contact_cleaner_total_numbers.tr(),
+              value: '${stats.totalNumbers}',
+              width: width,
+            ),
+            ContactCleanerStatTile(
+              title: LocaleKeys.contact_cleaner_missing_country.tr(),
+              value: '${stats.missingCountryCode}',
+              width: width,
+              backgroundColor: cs.primaryContainer,
+              valueColor: cs.onPrimaryContainer,
+            ),
+            ContactCleanerStatTile(
+              title: LocaleKeys.contact_cleaner_duplicates.tr(),
+              value: '${stats.duplicateEntries}',
+              width: width,
+              backgroundColor: cs.errorContainer,
+              valueColor: cs.onErrorContainer,
+            ),
+            ContactCleanerStatTile(
+              title: LocaleKeys.contact_cleaner_corrected.tr(),
+              value: '${stats.correctedNumbers}',
+              width: width,
+              backgroundColor: cs.tertiaryContainer,
+              valueColor: cs.onTertiaryContainer,
+            ),
+            ContactCleanerStatTile(
+              title: LocaleKeys.contact_cleaner_invalid.tr(),
+              value: '${stats.invalidNumbers}',
+              width: width,
+              backgroundColor: cs.errorContainer,
+              valueColor: cs.onErrorContainer,
+            ),
+          ],
+        );
+      },
     );
   }
 }
@@ -190,18 +192,20 @@ class _IssueCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ColorScheme cs = Theme.of(context).colorScheme;
+    final TextTheme tt = Theme.of(context).textTheme;
+
     return ContactCleanerPanel(
-      margin: EdgeInsets.only(bottom: context.insets.sm.h),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
               Expanded(
-                child: TextWidget(
+                child: Text(
                   phone.contactName,
-                  style: context.textStyles.titleMedium.copyWith(
-                    color: context.colors.onPrimaryContainer,
+                  style: tt.titleMedium?.copyWith(
+                    color: cs.onSurface,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -210,18 +214,16 @@ class _IssueCard extends StatelessWidget {
                 label: LocaleKeys.contact_cleaner_number_index.tr(
                   namedArgs: {'index': '${phone.entryIndex + 1}'},
                 ),
-                backgroundColor: context.colors.secondary,
-                textColor: context.colors.onSecondary,
               ),
             ],
           ),
-          SizedBox(height: context.insets.md.h),
+          const SizedBox(height: kGapMd),
           ContactCleanerLabeledValue(
             label: LocaleKeys.contact_cleaner_original_number.tr(),
             value: phone.originalNumber,
             valueDirection: ui.TextDirection.ltr,
           ),
-          SizedBox(height: context.insets.sm.h),
+          const SizedBox(height: kGapSm),
           ContactCleanerLabeledValue(
             label: LocaleKeys.contact_cleaner_analysis_result.tr(),
             value:
@@ -231,16 +233,16 @@ class _IssueCard extends StatelessWidget {
                 ? ui.TextDirection.rtl
                 : ui.TextDirection.ltr,
             backgroundColor: phone.normalizedNumber == null
-                ? context.colors.secondary
-                : context.colors.brand10Color,
+                ? null
+                : cs.primaryContainer,
             valueColor: phone.normalizedNumber == null
-                ? context.colors.onPrimaryContainer
-                : context.colors.primary,
+                ? null
+                : cs.onPrimaryContainer,
           ),
-          SizedBox(height: context.insets.md.h),
+          const SizedBox(height: kGapMd),
           Wrap(
-            spacing: context.insets.sm.w,
-            runSpacing: context.insets.sm.h,
+            spacing: kGapSm,
+            runSpacing: kGapSm,
             children: [
               if (phone.hasFormattingNoise)
                 ContactCleanerTag(
@@ -249,31 +251,30 @@ class _IssueCard extends StatelessWidget {
               if (phone.hadArabicDigits)
                 ContactCleanerTag(
                   label: LocaleKeys.contact_cleaner_issue_arabic_digits.tr(),
-                  backgroundColor: context.colors.brand10Color,
-                  textColor: context.colors.primary,
+                  backgroundColor: cs.primaryContainer,
+                  textColor: cs.onPrimaryContainer,
                 ),
               if (phone.isMissingCountryCode)
                 ContactCleanerTag(
                   label: LocaleKeys.contact_cleaner_issue_missing_country.tr(),
-                  backgroundColor: context.colors.brand10Color,
-                  textColor: context.colors.primary,
+                  backgroundColor: cs.primaryContainer,
+                  textColor: cs.onPrimaryContainer,
                 ),
               if (phone.isUnmatchedLocal)
                 ContactCleanerTag(
                   label: LocaleKeys.contact_cleaner_issue_unmatched_rule.tr(),
-                  backgroundColor: context.colors.secondary,
                 ),
               if (phone.isInvalidLength)
                 ContactCleanerTag(
                   label: LocaleKeys.contact_cleaner_issue_invalid_length.tr(),
-                  backgroundColor: context.colors.errorLight,
-                  textColor: context.colors.error,
+                  backgroundColor: cs.errorContainer,
+                  textColor: cs.onErrorContainer,
                 ),
               if (phone.wasCorrected)
                 ContactCleanerTag(
                   label: LocaleKeys.contact_cleaner_issue_fixable.tr(),
-                  backgroundColor: context.colors.primaryFixedLight,
-                  textColor: context.colors.primaryFixed,
+                  backgroundColor: cs.tertiaryContainer,
+                  textColor: cs.onTertiaryContainer,
                 ),
             ],
           ),

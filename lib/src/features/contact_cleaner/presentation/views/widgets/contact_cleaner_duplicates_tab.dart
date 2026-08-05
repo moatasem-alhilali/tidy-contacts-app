@@ -1,10 +1,11 @@
-// ignore_for_file: lines_longer_than_80_chars, omit_local_variable_types
+// Duplicates tab: cross-contact & within-contact duplicate groups.
+// Each group is an AdaptiveExpansionTile revealing its occurrences.
 
 import 'dart:ui' as ui;
 
+import 'package:adaptive_platform_ui/adaptive_platform_ui.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:hive_manager/design-system-package/siolla_design_system.dart';
 import 'package:hive_manager/generated/codegen_loader.g.dart';
 import 'package:hive_manager/src/features/contact_cleaner/data/models/contact_cleaner_models.dart';
 import 'package:hive_manager/src/features/contact_cleaner/presentation/views/widgets/contact_cleaner_common_widgets.dart';
@@ -19,13 +20,15 @@ class ContactCleanerDuplicatesTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final ContactAnalysisResult? currentAnalysis = analysis;
     if (currentAnalysis == null) {
-      return EmptyWidget(
+      return ContactCleanerEmptyState(
+        icon: Icons.copy_all_outlined,
         title: LocaleKeys.contact_cleaner_no_duplicates_data_title.tr(),
-        subTitle: LocaleKeys.contact_cleaner_no_duplicates_data_subtitle.tr(),
-        padding: EdgeInsets.symmetric(vertical: context.height * 0.16),
+        subtitle: LocaleKeys.contact_cleaner_no_duplicates_data_subtitle.tr(),
       );
     }
 
+    final ColorScheme cs = Theme.of(context).colorScheme;
+    final TextTheme tt = Theme.of(context).textTheme;
     final List<DuplicateGroup> crossDuplicates =
         currentAnalysis.crossContactDuplicates;
     final List<DuplicateGroup> withinDuplicates =
@@ -36,7 +39,7 @@ class ContactCleanerDuplicatesTab extends StatelessWidget {
           group: group,
           sectionTitle: LocaleKeys.contact_cleaner_duplicates_cross_contacts
               .tr(),
-          tone: _DuplicateTone.crossContact,
+          crossContact: true,
         ),
       ),
       ...withinDuplicates.map(
@@ -44,7 +47,7 @@ class ContactCleanerDuplicatesTab extends StatelessWidget {
           group: group,
           sectionTitle: LocaleKeys.contact_cleaner_duplicates_within_contact
               .tr(),
-          tone: _DuplicateTone.withinContact,
+          crossContact: false,
         ),
       ),
     ];
@@ -57,15 +60,15 @@ class ContactCleanerDuplicatesTab extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              TextWidget(
+              Text(
                 LocaleKeys.contact_cleaner_duplicates_report_title.tr(),
-                style: context.textStyles.titleMedium.copyWith(
-                  color: context.colors.onPrimaryContainer,
+                style: tt.titleMedium?.copyWith(
+                  color: cs.onSurface,
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              SizedBox(height: context.insets.sm.h),
-              TextWidget(
+              const SizedBox(height: kGapSm),
+              Text(
                 LocaleKeys.contact_cleaner_duplicates_report_summary.tr(
                   namedArgs: {
                     'visible': '$visibleCount',
@@ -74,105 +77,76 @@ class ContactCleanerDuplicatesTab extends StatelessWidget {
                     'within': '${withinDuplicates.length}',
                   },
                 ),
-                style: context.textStyles.bodyMedium.copyWith(
-                  color: context.colors.onSecondary,
-                ),
+                style: tt.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
               ),
             ],
           ),
         );
       },
-      emptyWidget: EmptyWidget(
+      emptyWidget: ContactCleanerEmptyState(
+        icon: Icons.verified_outlined,
         title: LocaleKeys.contact_cleaner_no_duplicates_title.tr(),
-        subTitle: LocaleKeys.contact_cleaner_no_duplicates_subtitle.tr(),
-        padding: EdgeInsets.symmetric(vertical: context.height * 0.1),
+        subtitle: LocaleKeys.contact_cleaner_no_duplicates_subtitle.tr(),
       ),
-      itemBuilder: (_DuplicateSectionItem item) => _DuplicateGroupCard(
-        group: item.group,
-        sectionTitle: item.sectionTitle,
-        tone: item.tone,
-      ),
-      separatorWidget: SizedBox(height: context.insets.sm.h),
+      itemBuilder: (_DuplicateSectionItem item) =>
+          _DuplicateGroupCard(item: item),
     );
   }
 }
-
-enum _DuplicateTone { crossContact, withinContact }
 
 class _DuplicateSectionItem {
   const _DuplicateSectionItem({
     required this.group,
     required this.sectionTitle,
-    required this.tone,
+    required this.crossContact,
   });
 
   final DuplicateGroup group;
   final String sectionTitle;
-  final _DuplicateTone tone;
+  final bool crossContact;
 }
 
 class _DuplicateGroupCard extends StatelessWidget {
-  const _DuplicateGroupCard({
-    required this.group,
-    required this.sectionTitle,
-    required this.tone,
-  });
+  const _DuplicateGroupCard({required this.item});
 
-  final DuplicateGroup group;
-  final String sectionTitle;
-  final _DuplicateTone tone;
+  final _DuplicateSectionItem item;
 
   @override
   Widget build(BuildContext context) {
-    final Color badgeBackground = tone == _DuplicateTone.crossContact
-        ? context.colors.errorLight
-        : context.colors.brand10Color;
-    final Color badgeTextColor = tone == _DuplicateTone.crossContact
-        ? context.colors.error
-        : context.colors.primary;
+    final ColorScheme cs = Theme.of(context).colorScheme;
+    final TextTheme tt = Theme.of(context).textTheme;
+    final DuplicateGroup group = item.group;
+    final Color badgeBg = item.crossContact
+        ? cs.errorContainer
+        : cs.primaryContainer;
+    final Color badgeFg = item.crossContact
+        ? cs.onErrorContainer
+        : cs.onPrimaryContainer;
 
     return ContactCleanerPanel(
-      margin: EdgeInsets.only(bottom: context.insets.sm.h),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      padding: const EdgeInsets.symmetric(horizontal: kGapSm),
+      child: AdaptiveExpansionTile(
+        title: Text(
+          group.displayNumber ?? group.key,
+          textDirection: ui.TextDirection.ltr,
+          style: tt.titleMedium?.copyWith(
+            color: cs.onSurface,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        subtitle: Text(item.sectionTitle),
+        trailing: ContactCleanerTag(
+          label: '${group.occurrences.length}',
+          backgroundColor: badgeBg,
+          textColor: badgeFg,
+        ),
+        childrenPadding: const EdgeInsets.only(bottom: kGapMd),
         children: [
-          Wrap(
-            spacing: context.insets.sm.w,
-            runSpacing: context.insets.sm.h,
-            children: [
-              ContactCleanerTag(
-                label: sectionTitle,
-                backgroundColor: badgeBackground,
-                textColor: badgeTextColor,
-              ),
-              ContactCleanerTag(
-                label: LocaleKeys.contact_cleaner_duplicate_occurrences.tr(
-                  namedArgs: {'count': '${group.occurrences.length}'},
-                ),
-                backgroundColor: context.colors.secondary,
-                textColor: context.colors.onSecondary,
-              ),
-            ],
-          ),
-          SizedBox(height: context.insets.md.h),
-          ContactCleanerLabeledValue(
-            label: LocaleKeys.contact_cleaner_normalized_number.tr(),
-            value: group.displayNumber ?? group.key,
-            valueDirection: ui.TextDirection.ltr,
-            backgroundColor: context.colors.brand10Color,
-            valueColor: context.colors.primary,
-          ),
-          SizedBox(height: context.insets.md.h),
-          ...group.occurrences.asMap().entries.map(
-            (MapEntry<int, DuplicateOccurrence> entry) => Padding(
-              padding: EdgeInsets.only(
-                bottom: entry.key == group.occurrences.length - 1
-                    ? 0
-                    : context.insets.sm.h,
-              ),
-              child: _OccurrenceTile(occurrence: entry.value),
+          for (final DuplicateOccurrence occurrence in group.occurrences)
+            Padding(
+              padding: const EdgeInsets.only(bottom: kGapSm),
+              child: _OccurrenceTile(occurrence: occurrence),
             ),
-          ),
         ],
       ),
     );
@@ -186,37 +160,40 @@ class _OccurrenceTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ColorScheme cs = Theme.of(context).colorScheme;
+    final TextTheme tt = Theme.of(context).textTheme;
+
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: context.colors.secondary,
-        borderRadius: BorderRadius.all(context.corners.rm),
+        color: cs.surfaceContainerHighest,
+        borderRadius: kRadiusTile,
       ),
       child: Padding(
-        padding: EdgeInsets.all(context.insets.sm.w),
+        padding: const EdgeInsets.all(kGapMd),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            TextWidget(
+            Text(
               occurrence.contactName,
-              style: context.textStyles.bodyLarge.copyWith(
-                color: context.colors.onPrimaryContainer,
+              style: tt.bodyLarge?.copyWith(
+                color: cs.onSurface,
                 fontWeight: FontWeight.w600,
               ),
             ),
-            SizedBox(height: context.insets.sm.h),
+            const SizedBox(height: kGapSm),
             ContactCleanerLabeledValue(
               label: LocaleKeys.contact_cleaner_original_number.tr(),
               value: occurrence.originalNumber,
               valueDirection: ui.TextDirection.ltr,
-              backgroundColor: context.colors.surface,
+              backgroundColor: cs.surface,
             ),
-            SizedBox(height: context.insets.sm.h),
+            const SizedBox(height: kGapSm),
             ContactCleanerLabeledValue(
               label: LocaleKeys.contact_cleaner_after_normalization.tr(),
               value: occurrence.normalizedNumber ?? occurrence.canonicalInput,
               valueDirection: ui.TextDirection.ltr,
-              backgroundColor: context.colors.surface,
-              valueColor: context.colors.primary,
+              backgroundColor: cs.surface,
+              valueColor: cs.primary,
             ),
           ],
         ),
