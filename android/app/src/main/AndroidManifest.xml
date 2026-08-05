@@ -28,7 +28,7 @@
         android:maxSdkVersion="29" />
 
     <application
-          android:label="Contact Clean"
+          android:label="Tidy Contacts"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon"
                 android:requestLegacyExternalStorage="true"

@@ -1,5 +1,5 @@
 name: hive_manager
-description: "A new Flutter project."
+description: "Tidy Contacts — an on-device contacts cleaner that finds duplicates and normalizes phone numbers, with full privacy (no server)."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: "none" # Remove this line if you wish to publish to pub.dev
