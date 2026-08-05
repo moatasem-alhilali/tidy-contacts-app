@@ -52,7 +52,7 @@
 | **Contacts** | `flutter_contacts` |
 | **Localization** | `easy_localization` |
 | **UI / UX** | `flutter_screenutil`, `skeletonizer`, `modal_bottom_sheet`, `pinput` |
-| **Maps & location** | `google_maps_flutter`, `geolocator`, `geocoding` |
+| **Files & sharing** | `file_picker`, `media_store_plus`, `open_file`, `share_plus` |
 | **Codegen** | `freezed`, `json_serializable`, `build_runner`, `flutter_gen` |
 
 > ℹ️ Firebase (Analytics / Messaging / Crashlytics) is currently **disabled** — all Firebase code is commented out and can be re-enabled later.
@@ -94,7 +94,6 @@ lib/
 
 - [Flutter](https://docs.flutter.dev/get-started/install) **3.41+** (Dart **3.8+**)
 - Android Studio / Xcode for the respective platforms
-- A [Google Maps API key](https://developers.google.com/maps/documentation/android-sdk/get-api-key) (for the location/map features)
 
 ### 1. Clone
 
@@ -131,21 +130,6 @@ flutter run
 ---
 
 ## 🔧 Configuration
-
-### Google Maps API key
-
-The map features require a Google Maps API key in **two** places:
-
-- **Android** → `android/app/src/main/AndroidManifest.xml`
-  ```xml
-  <meta-data android:name="com.google.android.geo.API_KEY" android:value="YOUR_KEY" />
-  ```
-- **iOS** → `ios/Runner/AppDelegate.swift`
-  ```swift
-  GMSServices.provideAPIKey("YOUR_KEY")
-  ```
-
-> ⚠️ **Never commit real API keys.** Restrict your key by app/bundle ID and platform in the Google Cloud Console. See the [Security](#-security) note below.
 
 ### App identifiers
 
