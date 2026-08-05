@@ -165,6 +165,25 @@ flutter build ios --release      # iOS (run on macOS, then `pod install` in ios/
 
 ---
 
+## 🛡️ Privacy Policy
+
+Tidy Contacts collects **no data** — all processing happens on your device. A bilingual
+(Arabic/English) privacy policy is included at [`docs/privacy-policy.html`](docs/privacy-policy.html).
+
+**To publish it for the App Store (free, via GitHub Pages):**
+
+1. On GitHub → **Settings → Pages**.
+2. Under *Build and deployment*, set **Source: Deploy from a branch**, **Branch: `main`**, **Folder: `/docs`**, then **Save**.
+3. After a minute your policy is live at:
+   ```
+   https://moatasem-alhilali.github.io/tidy-contacts-app/privacy-policy.html
+   ```
+4. Paste that URL into **App Store Connect → App Privacy → Privacy Policy URL**.
+
+> Before publishing, replace `REPLACE_WITH_YOUR_EMAIL@example.com` in the HTML with your real support email.
+
+---
+
 ## 🤝 Contributing
 
 Contributions are welcome! Please:
