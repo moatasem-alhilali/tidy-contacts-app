@@ -3,7 +3,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_manager/design-system-package/design_system_app.dart';
-import 'package:hive_manager/design-system-package/src/extensions/extensions.dart';
 import 'package:hive_manager/design-system-package/src/themes/app_theme.dart';
 import 'package:hive_manager/design-system-package/src/utils/app_theme_mode.dart';
 import 'package:hive_manager/gen/fonts.gen.dart';
@@ -78,12 +77,4 @@ class _AppState extends ConsumerState<App> {
       ),
     );
   }
-}
-
-class ScrollBehaviorModified extends ScrollBehavior {
-  const ScrollBehaviorModified();
-
-  @override
-  ScrollPhysics getScrollPhysics(BuildContext context) =>
-      const ClampingScrollPhysics();
 }
