@@ -1,4 +1,4 @@
-// ignore_for_file: lines_longer_than_80_chars, omit_local_variable_types
+// ignore_for_file: lines_longer_than_80_chars
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:adaptive_platform_ui/adaptive_platform_ui.dart';
@@ -7,7 +7,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:hive_manager/design-system-package/siolla_design_system.dart';
+import 'package:hive_manager/design-system-package/src/utils/request_state.dart';
 import 'package:hive_manager/generated/codegen_loader.g.dart';
 import 'package:hive_manager/src/features/adaptive_showcase/adaptive_showcase_screen.dart';
 import 'package:hive_manager/src/features/contact_cleaner/data/models/contact_cleaner_models.dart';
@@ -63,10 +63,10 @@ class _MainScreenState extends ConsumerState<MainScreen> {
       body: SafeArea(
         top: false,
         child: Padding(
-          padding: EdgeInsets.fromLTRB(
-            context.insets.mn.w,
-            context.insets.sm.h,
-            context.insets.mn.w,
+          padding: const EdgeInsets.fromLTRB(
+            kScreenPad,
+            kGapSm,
+            kScreenPad,
             0,
           ),
           child: _buildContent(context, state, controller),
@@ -81,7 +81,8 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     ContactCleanerController controller,
   ) {
     if (!state.isSupported) {
-      return FailureWidget(
+      return ContactCleanerFailureState(
+        icon: Icons.phonelink_erase_outlined,
         title: LocaleKeys.contact_cleaner_platform_not_supported_title.tr(),
         subtitle: LocaleKeys.contact_cleaner_platform_not_supported_subtitle
             .tr(),
@@ -94,7 +95,8 @@ class _MainScreenState extends ConsumerState<MainScreen> {
       final bool shouldOpenSettings =
           state.permissionStatus.name.contains('permanently') ||
           state.permissionStatus == PermissionStatus.restricted;
-      return FailureWidget(
+      return ContactCleanerFailureState(
+        icon: Icons.lock_outline,
         title: LocaleKeys.contact_cleaner_permission_required_title.tr(),
         subtitle: LocaleKeys.contact_cleaner_permission_required_subtitle.tr(),
         buttonText: shouldOpenSettings
@@ -108,12 +110,14 @@ class _MainScreenState extends ConsumerState<MainScreen> {
 
     if (state.isScanning && !state.hasAnalysis) {
       return Center(
-        child: CircularProgressIndicator(color: context.colors.primary),
+        child: CircularProgressIndicator(
+          color: Theme.of(context).colorScheme.primary,
+        ),
       );
     }
 
     if (state.scanState == RequestState.error && !state.hasAnalysis) {
-      return FailureWidget(
+      return ContactCleanerFailureState(
         title: LocaleKeys.contact_cleaner_read_failed_title.tr(),
         subtitle: state.errorMessage,
         buttonText: LocaleKeys.retry.tr(),
@@ -140,7 +144,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
           selectedIndex: _tab,
           onChanged: (int index) => setState(() => _tab = index),
         ),
-        SizedBox(height: context.insets.md.h),
+        const SizedBox(height: kGapMd),
         Expanded(
           child: IndexedStack(
             index: _tab,
@@ -214,9 +218,9 @@ class _MainScreenState extends ConsumerState<MainScreen> {
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
-      backgroundColor: context.colors.surface,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: context.corners.rb),
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (BuildContext sheetContext) => Padding(
         padding: EdgeInsets.only(

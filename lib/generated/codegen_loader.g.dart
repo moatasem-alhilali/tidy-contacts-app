@@ -19,6 +19,7 @@ abstract class  LocaleKeys {
   static const contact_cleaner_permission_required_subtitle = 'contact_cleaner_permission_required_subtitle';
   static const contact_cleaner_read_failed_title = 'contact_cleaner_read_failed_title';
   static const contact_cleaner_scan_completed = 'contact_cleaner_scan_completed';
+  static const contact_cleaner_load_more = 'contact_cleaner_load_more';
   static const contact_cleaner_backup_created = 'contact_cleaner_backup_created';
   static const contact_cleaner_backup_share_title = 'contact_cleaner_backup_share_title';
   static const contact_cleaner_apply_completed = 'contact_cleaner_apply_completed';

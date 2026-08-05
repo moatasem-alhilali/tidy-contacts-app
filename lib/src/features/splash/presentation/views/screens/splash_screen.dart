@@ -1,7 +1,7 @@
+import 'package:adaptive_platform_ui/adaptive_platform_ui.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:hive_manager/design-system-package/siolla_design_system.dart';
 import 'package:hive_manager/src/core/utils/constants.dart';
 import 'package:hive_manager/src/features/home/presentation/views/screens/routes.gr.dart';
 
@@ -34,60 +34,46 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   }
 
   void _initializeAnimations() {
-    // Fade animation
     _fadeController = AnimationController(
       duration: const Duration(milliseconds: 1000),
       vsync: this,
     );
-
-    // Typewriter animation
     _typewriterController = AnimationController(
       duration: const Duration(milliseconds: 2000),
       vsync: this,
     );
-
-    // Loading animation
     _loadingController = AnimationController(
       duration: const Duration(milliseconds: 1000),
       vsync: this,
     );
 
-    // Define animations
     _fadeAnimation = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(parent: _fadeController, curve: Curves.easeInOut),
     );
-
     _typewriterAnimation = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(parent: _typewriterController, curve: Curves.easeInOut),
     );
-
     _loadingAnimation = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(parent: _loadingController, curve: Curves.easeInOut),
     );
   }
 
   Future<void> _startAnimations() async {
-    // Start fade animation
     await _fadeController.forward();
 
-    // Start typewriter effect
     _typewriterController.addListener(() {
-      final progress = _typewriterAnimation.value;
-      final charCount = (progress * _fullText.length).round();
+      final double progress = _typewriterAnimation.value;
+      final int charCount = (progress * _fullText.length).round();
       setState(() {
         _displayText = _fullText.substring(0, charCount);
       });
     });
 
     await _typewriterController.forward();
-
-    // Start loading animation
     _loadingController.repeat();
 
-    // Wait for a moment then navigate
-    await Future.delayed(const Duration(milliseconds: 1500));
+    await Future<void>.delayed(const Duration(milliseconds: 1500));
 
-    // Navigate to next screen
     if (mounted) {
       context.router.replace(const MainRoute());
     }
@@ -103,19 +89,19 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
-    return AppScaffold(
-      scaffoldBackgroundColor: context.colors.surface,
-      child: Center(
+    final ColorScheme cs = Theme.of(context).colorScheme;
+
+    return AdaptiveScaffold(
+      body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const SizedBox(),
-            // App name with typewriter effect
             Column(
               children: [
                 AnimatedBuilder(
                   animation: _fadeAnimation,
-                  builder: (context, child) {
+                  builder: (BuildContext context, Widget? child) {
                     return Opacity(
                       opacity: _fadeAnimation.value,
                       child: RichText(
@@ -129,11 +115,10 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                                     fontWeight: FontWeight.bold,
                                     fontSize: 48,
                                     letterSpacing: 2,
-                                    color: context.colors.brandColor,
+                                    color: cs.primary,
                                     height: 1.2,
                                   ),
                             ),
-                            // Blinking cursor effect
                             if (_typewriterAnimation.value < 1)
                               TextSpan(
                                 text: '|',
@@ -142,8 +127,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                                       fontWeight: FontWeight.bold,
                                       fontSize: 48,
                                       letterSpacing: 2,
-                                      color: context.colors.brandColor
-                                          .withOpacity(0.8),
+                                      color: cs.primary.withValues(alpha: 0.8),
                                       height: 1.2,
                                     ),
                               ),
@@ -153,49 +137,45 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                     );
                   },
                 ),
-
-                // Enhanced loading indicator
                 AnimatedBuilder(
                   animation: Listenable.merge([
                     _typewriterAnimation,
                     _loadingAnimation,
                   ]),
-                  builder: (context, child) {
+                  builder: (BuildContext context, Widget? child) {
                     return Opacity(
                       opacity: _typewriterAnimation.value,
                       child: Column(
                         children: [
                           const SizedBox(height: 20),
-
                           Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              // Loading dots
                               for (int i = 0; i < 3; i++)
                                 AnimatedBuilder(
                                   animation: _loadingAnimation,
-                                  builder: (context, child) {
-                                    final delay = i * 0.2;
-                                    final animationValue =
-                                        (_loadingAnimation.value + delay) % 1.0;
-                                    final opacity = (animationValue * 2).clamp(
-                                      0.0,
-                                      1.0,
-                                    );
-
-                                    return Container(
-                                      margin: const EdgeInsets.symmetric(
-                                        horizontal: 4,
-                                      ),
-                                      width: 8,
-                                      height: 8,
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: context.colors.brandColor
-                                            .withOpacity(opacity),
-                                      ),
-                                    );
-                                  },
+                                  builder:
+                                      (BuildContext context, Widget? child) {
+                                        final double delay = i * 0.2;
+                                        final double animationValue =
+                                            (_loadingAnimation.value + delay) %
+                                            1.0;
+                                        final double opacity =
+                                            (animationValue * 2).clamp(0.0, 1.0);
+                                        return Container(
+                                          margin: const EdgeInsets.symmetric(
+                                            horizontal: 4,
+                                          ),
+                                          width: 8,
+                                          height: 8,
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            color: cs.primary.withValues(
+                                              alpha: opacity,
+                                            ),
+                                          ),
+                                        );
+                                      },
                                 ),
                             ],
                           ),
@@ -206,23 +186,19 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                 ),
               ],
             ),
-
-            // const Spacer(),
-
-            // Copyright notice
             Align(
               alignment: Alignment.bottomCenter,
               child: AnimatedBuilder(
                 animation: _fadeAnimation,
-                builder: (context, child) {
+                builder: (BuildContext context, Widget? child) {
                   return Opacity(
                     opacity: _fadeAnimation.value * 0.7,
                     child: Padding(
                       padding: const EdgeInsets.only(bottom: 32),
                       child: Text(
-                        '© ${DateTime.now().year} $_fullText All rights reserved.',
+                        '© ${DateTime.now().year} $_fullText',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: context.colors.primary.withOpacity(0.6),
+                          color: cs.onSurface.withValues(alpha: 0.6),
                           fontSize: 12,
                         ),
                         textAlign: TextAlign.center,
