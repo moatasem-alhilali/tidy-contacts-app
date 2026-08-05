@@ -204,18 +204,29 @@ flutter:
           weight: 700
 
 flutter_launcher_icons:
-  android: true
+  android: "launcher_icon"
   ios: true
-  web:
-    generate: true
-    image_path: "assets/icon.png"
-    background_color: "#ffffff"
-    theme_color: "#ffffff"
-  macos:
-    generate: true
-    image_path: "assets/icon.png"
-  image_path: "assets/icon.png"
+  image_path: "assets/icon/icon.png"
+  # Android adaptive icon (foreground symbol on blue gradient background)
+  adaptive_icon_background: "assets/icon/background.png"
+  adaptive_icon_foreground: "assets/icon/foreground.png"
   remove_alpha_ios: true
   min_sdk_android: 21
+  web:
+    generate: true
+    image_path: "assets/icon/icon.png"
+    background_color: "#0F55D6"
+    theme_color: "#0F55D6"
+  # Regenerate with:  dart run flutter_launcher_icons
 
-  # flutter pub run flutter_launcher_icons
+# Native splash screen (blue background + white logo)
+flutter_native_splash:
+  color: "#0F55D6"
+  image: assets/icon/splash_logo.png
+  android_12:
+    color: "#0F55D6"
+    image: assets/icon/splash_logo.png
+  android: true
+  ios: true
+  web: false
+  # Regenerate with:  dart run flutter_native_splash:create
